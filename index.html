@@ -3,502 +3,649 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Imperium OS: Ultimate</title>
+    <title>IMPERIUM: TITAN EDITION</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- DESIGN SYSTEM --- */
+        /* --- CORE DESIGN SYSTEM --- */
         :root {
-            --bg-dark: #0f172a;
-            --bg-panel: #1e293b;
-            --border: #334155;
-            --accent: #38bdf8; /* Blau */
-            --success: #22c55e; /* Grün */
-            --danger: #ef4444; /* Rot */
-            --warning: #f59e0b; /* Orange */
-            --text: #f8fafc;
+            --bg-deep: #050505;
+            --bg-panel: #121212;
+            --bg-card: #1e1e1e;
+            --border: #333;
+            
+            --neon-blue: #00f3ff;
+            --neon-green: #00ff9d;
+            --neon-red: #ff0055;
+            --neon-gold: #ffbd00;
+            --neon-purple: #bd00ff;
+            
+            --text-main: #ffffff;
+            --text-dim: #888;
         }
 
-        * { box-sizing: border-box; outline: none; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text); margin: 0; height: 100vh; display: flex; overflow: hidden; }
+        * { box-sizing: border-box; outline: none; user-select: none; }
+        body { 
+            font-family: 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg-deep); 
+            color: var(--text-main); 
+            margin: 0; height: 100vh; 
+            overflow: hidden; 
+            display: flex;
+        }
 
-        /* --- LAYOUT --- */
-        .sidebar { width: 260px; background: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; z-index: 10; }
-        .main-content { flex: 1; padding: 30px; overflow-y: auto; background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 70%); position: relative; }
+        /* SCROLLBARS */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-panel); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--neon-blue); }
 
-        /* SIDEBAR ITEMS */
-        .brand { font-size: 1.5rem; font-weight: bold; color: var(--accent); margin-bottom: 40px; letter-spacing: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
-        .nav-btn { background: transparent; border: none; color: #94a3b8; padding: 15px; text-align: left; cursor: pointer; border-radius: 8px; font-size: 1rem; margin-bottom: 5px; transition: 0.2s; display: flex; align-items: center; gap: 15px; }
-        .nav-btn:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-btn.active { background: var(--accent); color: #0f172a; font-weight: bold; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            padding: 20px; z-index: 100;
+        }
+        .logo { 
+            font-size: 24px; font-weight: 900; 
+            color: var(--neon-blue); text-transform: uppercase; 
+            letter-spacing: 4px; margin-bottom: 40px;
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .nav-item {
+            padding: 15px; margin-bottom: 8px;
+            color: var(--text-dim); cursor: pointer;
+            border-radius: 8px; transition: 0.3s;
+            display: flex; align-items: center; gap: 15px;
+            font-weight: 600;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { 
+            background: linear-gradient(90deg, rgba(0,243,255,0.1), transparent); 
+            color: var(--neon-blue); border-left: 3px solid var(--neon-blue);
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         
-        .cash-display { margin-top: auto; background: #0f172a; padding: 15px; border-radius: 10px; border: 1px solid var(--border); text-align: center; }
-        .cash-val { font-size: 1.4rem; color: var(--success); font-weight: bold; font-family: monospace; }
+        .top-bar {
+            height: 70px; background: rgba(18,18,18,0.9); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px;
+        }
+        
+        .stat-group { display: flex; gap: 30px; }
+        .stat { display: flex; flex-direction: column; }
+        .stat-label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-val { font-size: 18px; font-weight: bold; font-family: monospace; }
+        .val-money { color: var(--neon-green); text-shadow: 0 0 10px rgba(0,255,157,0.3); }
 
-        /* --- VIEWS --- */
-        .view { display: none; animation: fadeIn 0.4s ease-out; }
-        .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .content-view { 
+            flex: 1; padding: 30px; overflow-y: auto; display: none; 
+            animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .content-view.active { display: block; }
 
-        /* --- CARDS & GRIDS --- */
+        @keyframes fadeIn { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+        /* --- COMPONENTS --- */
         .grid { display: grid; gap: 20px; }
         .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
         .grid-4 { grid-template-columns: repeat(4, 1fr); }
-        
-        .card { background: rgba(30, 41, 59, 0.7); border: 1px solid var(--border); border-radius: 12px; padding: 20px; backdrop-filter: blur(10px); position: relative; overflow: hidden; }
-        .card h2 { margin-top: 0; font-size: 1.2rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; display: flex; justify-content: space-between; }
 
-        /* BUTTONS */
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .btn:active { transform: scale(0.95); }
-        .btn-primary { background: var(--accent); color: #0f172a; }
-        .btn-success { background: var(--success); color: #0f172a; }
-        .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
-        .btn-sm { padding: 5px 10px; font-size: 0.8rem; width: auto; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; position: relative; overflow: hidden;
+        }
+        .card-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid var(--border); 
+        }
+        .card-title { font-size: 16px; font-weight: bold; color: white; display: flex; align-items: center; gap: 10px; }
 
-        /* --- COMPANY VISUALS --- */
-        .process-chain { display: flex; gap: 10px; margin-bottom: 20px; }
-        .process-step { flex: 1; background: #0f172a; padding: 15px; border-radius: 8px; border: 1px solid var(--border); text-align: center; position: relative; }
-        .process-step::after { content: '→'; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); color: var(--border); font-size: 1.5rem; }
-        .process-step:last-child::after { content: ''; }
+        .btn {
+            background: var(--border); color: white; border: none;
+            padding: 10px 20px; border-radius: 6px; cursor: pointer;
+            font-weight: bold; transition: 0.2s; display: inline-flex;
+            align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .btn:active { transform: scale(0.98); }
         
-        .step-icon { font-size: 2rem; margin-bottom: 10px; color: #64748b; }
-        .step-active .step-icon { color: var(--accent); animation: pulse 2s infinite; }
+        .btn-primary { background: var(--neon-blue); color: #000; }
+        .btn-success { background: var(--neon-green); color: #000; }
+        .btn-danger { background: var(--neon-red); color: white; }
+        .btn-gold { background: var(--neon-gold); color: #000; }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
+        .btn-full { width: 100%; }
+
+        input, select {
+            background: #000; border: 1px solid var(--border);
+            color: white; padding: 12px; border-radius: 6px; width: 100%;
+            margin-bottom: 10px; font-family: inherit;
+        }
+        input:focus { border-color: var(--neon-blue); }
+
+        /* --- SPECIFIC STYLES --- */
         
-        .progress-container { background: #1e293b; height: 8px; border-radius: 4px; overflow: hidden; margin: 10px 0; }
+        /* Company Product Cards */
+        .product-card { border-left: 4px solid var(--neon-blue); }
+        .progress-track { background: #000; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
         .progress-bar { height: 100%; width: 0%; transition: width 0.2s linear; }
-        
-        /* --- STOCK MARKET --- */
-        .stock-list { height: 400px; overflow-y: auto; }
-        .stock-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-        .stock-item:hover { background: rgba(255,255,255,0.05); }
-        .stock-up { color: var(--success); } .stock-down { color: var(--danger); }
+        .bar-prod { background: var(--neon-gold); }
+        .bar-sales { background: var(--neon-green); }
 
-        /* --- NOTIFICATIONS --- */
-        #toast-area { position: fixed; bottom: 20px; right: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background: var(--bg-panel); border-left: 4px solid var(--accent); padding: 15px; border-radius: 6px; width: 300px; box-shadow: 0 5px 20px rgba(0,0,0,0.5); animation: slideIn 0.3s; color: white; display: flex; align-items: center; gap: 10px; }
+        /* Stock Market */
+        .stock-row { 
+            display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; 
+            padding: 15px; border-bottom: 1px solid var(--border); 
+            cursor: pointer; transition: 0.2s; 
+        }
+        .stock-row:hover { background: rgba(255,255,255,0.05); }
+        .up { color: var(--neon-green); } .down { color: var(--neon-red); }
+
+        /* Casino Horse Track */
+        .horse-track { background: #2a3a2a; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
+        .lane { height: 40px; border-bottom: 1px dashed #555; position: relative; display: flex; align-items: center; }
+        .horse { position: absolute; left: 0; font-size: 24px; transition: left 0.5s linear; }
+        .finish-line { position: absolute; right: 20px; height: 100%; width: 2px; background: red; }
+
+        /* Notifications */
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: var(--bg-card); border-left: 4px solid var(--neon-blue); padding: 15px; width: 300px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); color: white; display: flex; align-items: center; gap: 15px; animation: slideIn 0.3s; }
         @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
-        /* --- MODALS --- */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .modal-box { background: var(--bg-panel); width: 500px; padding: 30px; border-radius: 12px; border: 1px solid var(--accent); }
-        input, select { width: 100%; padding: 12px; background: #0f172a; border: 1px solid var(--border); color: white; border-radius: 6px; margin-bottom: 15px; }
+        /* Modals */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 500; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); width: 500px; padding: 30px; border-radius: 15px; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
 
     </style>
 </head>
 <body>
 
-    <div id="toast-area"></div>
+    <div id="toast-container"></div>
 
     <div class="sidebar">
-        <div class="brand"><i class="fas fa-crown"></i> Imperium</div>
+        <div class="logo"><i class="fas fa-layer-group"></i> TITAN OS</div>
         
-        <button class="nav-btn active" onclick="Nav.to('dash')"><i class="fas fa-home"></i> Übersicht</button>
-        <button class="nav-btn" onclick="Nav.to('company')"><i class="fas fa-building"></i> Meine Firma</button>
-        <button class="nav-btn" onclick="Nav.to('stocks')"><i class="fas fa-chart-line"></i> Aktienmarkt</button>
-        <button class="nav-btn" onclick="Nav.to('estate')"><i class="fas fa-city"></i> Immobilien</button>
-        <button class="nav-btn" onclick="Nav.to('casino')"><i class="fas fa-dice"></i> Casino</button>
-
-        <div class="cash-display">
-            <div style="font-size:0.8rem; color:#64748b; margin-bottom:5px;">Vermögen</div>
-            <div class="cash-val" id="ui-cash">0 €</div>
+        <div class="nav-item active" onclick="App.nav('dash')"><i class="fas fa-home"></i> Dashboard</div>
+        <div class="nav-item" onclick="App.nav('company')"><i class="fas fa-building"></i> Konzern</div>
+        <div class="nav-item" onclick="App.nav('stocks')"><i class="fas fa-chart-line"></i> Wall Street</div>
+        <div class="nav-item" onclick="App.nav('estate')"><i class="fas fa-city"></i> Immobilien</div>
+        <div class="nav-item" onclick="App.nav('casino')"><i class="fas fa-dice"></i> Casino Royal</div>
+        
+        <div style="margin-top: auto; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <div style="font-size: 12px; color: #666;">System Status</div>
+            <div style="color: var(--neon-green); font-size: 12px;">● Online</div>
+            <button class="btn btn-sm btn-danger" style="margin-top:10px; width:100%" onclick="App.reset()">Reset Save</button>
         </div>
     </div>
 
-    <div class="main-content">
-
-        <div id="view-dash" class="view active">
-            <h1 style="margin-bottom: 20px;">Willkommen zurück, CEO.</h1>
-            <div class="grid grid-2">
-                <div class="card">
-                    <h2><i class="fas fa-wallet"></i> Finanzstatus</h2>
-                    <p>Bargeld: <span id="dash-cash" style="color:var(--success)">0 €</span></p>
-                    <p>Firmenwert: <span id="dash-val" style="color:var(--accent)">0 €</span></p>
-                    <p>Immobilien: <span id="dash-props">0</span></p>
+    <div class="main">
+        <div class="top-bar">
+            <div class="stat-group">
+                <div class="stat">
+                    <span class="stat-label">Vermögen</span>
+                    <span class="stat-val val-money" id="ui-cash">0 €</span>
                 </div>
-                <div class="card" onclick="Nav.to('company')" style="cursor:pointer">
-                    <h2><i class="fas fa-industry"></i> Firmen-Schnellzugriff</h2>
-                    <div id="dash-company-status">
-                        <p style="color:#64748b">Noch keine Firma gegründet.</p>
-                        <button class="btn btn-primary">Jetzt Gründen</button>
+                <div class="stat">
+                    <span class="stat-label">Firmenwert</span>
+                    <span class="stat-val" id="ui-val">0 €</span>
+                </div>
+            </div>
+            <div class="stat-group">
+                <div class="stat" style="text-align: right;">
+                    <span class="stat-label">Zeit</span>
+                    <span class="stat-val" id="ui-date">Tag 1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dash" class="content-view active">
+            <h1 style="font-size: 32px; margin-bottom: 20px;">Executive Summary</h1>
+            
+            <div class="grid grid-3">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-wallet"></i> Liquidität</span>
+                    </div>
+                    <h1 style="color:var(--neon-green); font-size: 36px; margin: 0;" id="dash-cash">0 €</h1>
+                    <p style="color:#666">Verfügbares Kapital</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-users"></i> Gesamt-Personal</span>
+                    </div>
+                    <h1 style="color:var(--neon-blue); font-size: 36px; margin: 0;" id="dash-staff">0</h1>
+                    <p style="color:#666">Mitarbeiter weltweit</p>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title"><i class="fas fa-chart-pie"></i> Gewinn/Min</span>
+                    </div>
+                    <h1 style="color:var(--neon-gold); font-size: 36px; margin: 0;" id="dash-profit">0 €</h1>
+                    <p style="color:#666">Geschätzter Cashflow</p>
+                </div>
+            </div>
+
+            <div class="grid grid-2" style="margin-top: 20px;">
+                <div class="card" style="height: 300px;">
+                    <div class="card-header"><span class="card-title">Finanzentwicklung</span></div>
+                    <canvas id="mainChart"></canvas>
+                </div>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Schnellzugriff</span></div>
+                    <div style="display: grid; gap: 10px;">
+                        <button class="btn btn-primary" onclick="App.nav('company')">Produktion verwalten</button>
+                        <button class="btn" onclick="App.nav('stocks')">Aktienkurse prüfen</button>
+                        <button class="btn btn-gold" onclick="App.nav('casino')">Ins Casino gehen</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="view-company" class="view">
-            <div id="comp-create" style="max-width:500px; margin: 0 auto; text-align:center;">
-                <h1 style="color:var(--accent)">Startup Gründen</h1>
-                <p style="color:#94a3b8; margin-bottom:30px;">Baue dein Produktions-Imperium auf.</p>
-                <input id="c-name" placeholder="Firmenname (z.B. CyberDyne)">
-                <select id="c-type">
-                    <option value="tech">Technologie (High Tech)</option>
-                    <option value="auto">Automobil (Industrie)</option>
-                    <option value="food">Lebensmittel (Massenmarkt)</option>
-                </select>
-                <div class="card" style="margin-bottom:20px;">
-                    <p>Startkapital benötigt: <span style="color:var(--warning)">25.000 €</span></p>
-                </div>
-                <button class="btn btn-success" onclick="Company.create()">Gründung unterschreiben</button>
+        <div id="view-company" class="content-view">
+            <div id="comp-setup" style="max-width: 500px; margin: 50px auto; text-align: center;">
+                <h1 style="color:var(--neon-blue); font-size: 40px; margin-bottom: 20px;">KONZERN GRÜNDUNG</h1>
+                <p style="color:#888; margin-bottom: 30px;">Wähle einen Namen für dein Imperium.</p>
+                <input id="setup-name" placeholder="Firmenname (z.B. Tesla)" style="font-size: 18px;">
+                <button class="btn btn-primary btn-full" style="padding: 15px;" onclick="Company.create()">Gründen (Kostenlos)</button>
             </div>
 
-            <div id="comp-manage" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h1 id="comp-header-name">FIRMA</h1>
-                    <button class="btn btn-primary" style="width:auto;" onclick="Company.openDesigner()"><i class="fas fa-pencil-ruler"></i> Produkt Designen</button>
+            <div id="comp-main" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h1 id="comp-name-display" style="margin:0; text-transform: uppercase;">FIRMA</h1>
+                    <button class="btn btn-primary" onclick="Company.openProductModal()"><i class="fas fa-plus"></i> Neues Produkt</button>
                 </div>
 
-                <div class="process-chain">
-                    <div class="process-step" id="step-buy">
-                        <div class="step-icon"><i class="fas fa-boxes"></i></div>
-                        <h3>Einkauf</h3>
-                        <p>Rohstoffe: <span id="val-raw" style="color:var(--accent)">0</span></p>
-                        <div class="progress-container"><div id="bar-buy" class="progress-bar" style="background:var(--accent)"></div></div>
-                        <div style="font-size:0.8rem; margin-bottom:5px;">Personal: <span id="staff-buy">0</span></div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-success btn-sm" onclick="Company.hire('buy')">+</button>
-                            <button class="btn btn-danger btn-sm" onclick="Company.fire('buy')">-</button>
-                        </div>
-                    </div>
-
-                    <div class="process-step" id="step-make">
-                        <div class="step-icon"><i class="fas fa-cogs"></i></div>
-                        <h3>Produktion</h3>
-                        <p>Lager: <span id="val-stock" style="color:var(--warning)">0</span></p>
-                        <div class="progress-container"><div id="bar-make" class="progress-bar" style="background:var(--warning)"></div></div>
-                        <div style="font-size:0.8rem; margin-bottom:5px;">Personal: <span id="staff-make">0</span></div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-success btn-sm" onclick="Company.hire('make')">+</button>
-                            <button class="btn btn-danger btn-sm" onclick="Company.fire('make')">-</button>
-                        </div>
-                    </div>
-
-                    <div class="process-step" id="step-sell">
-                        <div class="step-icon"><i class="fas fa-hand-holding-usd"></i></div>
-                        <h3>Verkauf</h3>
-                        <p>Offene Orders: <span id="val-orders" style="color:var(--success)">0</span></p>
-                        <div class="progress-container"><div id="bar-sell" class="progress-bar" style="background:var(--success)"></div></div>
-                        <div style="font-size:0.8rem; margin-bottom:5px;">Personal: <span id="staff-sell">0</span></div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-success btn-sm" onclick="Company.hire('sell')">+</button>
-                            <button class="btn btn-danger btn-sm" onclick="Company.fire('sell')">-</button>
-                        </div>
-                    </div>
-
-                    <div class="process-step" id="step-ship">
-                        <div class="step-icon"><i class="fas fa-truck"></i></div>
-                        <h3>Logistik</h3>
-                        <p>Unterwegs: <span id="val-ship" style="color:#fff">0</span></p>
-                        <div class="progress-container"><div id="bar-ship" class="progress-bar" style="background:#fff"></div></div>
-                        <div style="font-size:0.8rem; margin-bottom:5px;">Personal: <span id="staff-ship">0</span></div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="btn btn-success btn-sm" onclick="Company.hire('ship')">+</button>
-                            <button class="btn btn-danger btn-sm" onclick="Company.fire('ship')">-</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-2">
+                <div class="grid grid-4" style="margin-bottom: 30px;">
                     <div class="card">
-                        <h2>Aufträge & Status</h2>
-                        <div id="contract-list" style="height:200px; overflow-y:auto; font-size:0.9rem;">
-                            </div>
+                        <small>Unzugewiesene Mitarbeiter</small>
+                        <h2 id="pool-staff" style="color: white; margin: 5px 0;">0</h2>
+                        <div style="display:flex; gap: 5px;">
+                            <button class="btn btn-sm btn-success" onclick="Company.hirePool(1)">+1</button>
+                            <button class="btn btn-sm btn-success" onclick="Company.hirePool(10)">+10</button>
+                            <button class="btn btn-sm btn-success" onclick="Company.hirePool(100)">+100</button>
+                        </div>
                     </div>
                     <div class="card">
-                        <h2>Finanzen (Live)</h2>
-                        <p>Aktuelles Produkt: <span id="ui-prod-name" style="color:var(--accent)">Keines</span></p>
-                        <p>Verkaufspreis: <span id="ui-prod-price">0</span> €</p>
-                        <p>Kosten (Personal): <span id="ui-wages" style="color:var(--danger)">0</span> €/Min</p>
+                        <small>Globale Rohstoffe</small>
+                        <h2 id="pool-mats" style="color: var(--neon-gold); margin: 5px 0;">0</h2>
+                        <button class="btn btn-sm btn-full" onclick="Company.buyMats()">Kaufen (Auto)</button>
                     </div>
                 </div>
+
+                <h3 style="border-bottom: 1px solid #333; padding-bottom: 10px;">Produktlinien</h3>
+                <div id="product-list" class="grid grid-2">
+                    </div>
             </div>
         </div>
 
-        <div id="view-stocks" class="view">
-            <div class="grid" style="grid-template-columns: 300px 1fr;">
-                <div class="card">
-                    <h2>Marktübersicht</h2>
-                    <div class="stock-list" id="stock-list-container">
-                        </div>
+        <div id="view-stocks" class="content-view">
+            <div class="grid grid-2" style="height: 100%;">
+                <div class="card" style="display: flex; flex-direction: column;">
+                    <div class="card-header"><span class="card-title">Markt</span></div>
+                    <div id="stock-list" style="flex: 1; overflow-y: auto;"></div>
                 </div>
                 <div class="card">
-                    <h2 id="chart-header">Aktie wählen...</h2>
-                    <div style="height:300px;"><canvas id="stockChart"></canvas></div>
-                    <div style="margin-top:20px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="card-header">
+                        <span class="card-title" id="stock-detail-name">Wähle eine Aktie</span>
+                        <span style="font-family: monospace; font-size: 20px;" id="stock-detail-price">--</span>
+                    </div>
+                    <div style="height: 300px; margin-bottom: 20px;">
+                        <canvas id="stockChart"></canvas>
+                    </div>
+                    <div class="card" style="background: rgba(0,0,0,0.3);">
+                        <div style="display:flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>Dein Besitz: <b id="stock-owned">0</b></span>
+                            <span>Wert: <b id="stock-val">0 €</b></span>
+                        </div>
                         <input type="number" id="stock-amount" value="10">
-                        <div style="line-height:45px;">Besitz: <span id="stock-owned">0</span></div>
-                        <button class="btn btn-success" onclick="Stocks.trade('buy')">Kaufen</button>
-                        <button class="btn btn-danger" onclick="Stocks.trade('sell')">Verkaufen</button>
+                        <div class="grid grid-2">
+                            <button class="btn btn-success" onclick="Stocks.trade('buy')">Kaufen</button>
+                            <button class="btn btn-danger" onclick="Stocks.trade('sell')">Verkaufen</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="view-estate" class="view">
-            <h1>Immobilienmarkt</h1>
-            <div class="grid grid-4" id="estate-list">
+        <div id="view-casino" class="content-view">
+            <h1 style="text-align: center; color: var(--neon-gold); margin-bottom: 40px;">CASINO ROYAL</h1>
+            
+            <div class="grid grid-3">
+                <div class="card" style="grid-column: span 3;">
+                    <div class="card-header"><span class="card-title"><i class="fas fa-horse"></i> Pferderennen</span></div>
+                    <div class="horse-track" id="horse-track">
+                        <div class="lane" id="lane-0"><i class="fas fa-horse horse" style="color:cyan"></i></div>
+                        <div class="lane" id="lane-1"><i class="fas fa-horse horse" style="color:magenta"></i></div>
+                        <div class="lane" id="lane-2"><i class="fas fa-horse horse" style="color:yellow"></i></div>
+                    </div>
+                    <div style="display:flex; gap: 10px; justify-content: center;">
+                        <input id="horse-bet" type="number" placeholder="Einsatz" style="width: 150px; margin:0;">
+                        <select id="horse-select" style="width: 150px; margin:0;">
+                            <option value="0">Cyan (x3)</option>
+                            <option value="1">Magenta (x3)</option>
+                            <option value="2">Gelb (x3)</option>
+                        </select>
+                        <button class="btn btn-gold" onclick="Casino.startRace()">Starten</button>
+                    </div>
                 </div>
-            <h2 style="margin-top:40px;">Mein Portfolio</h2>
-            <div class="grid grid-4" id="my-estate-list"></div>
-        </div>
 
-        <div id="view-casino" class="view">
-            <div style="max-width:400px; margin:50px auto; text-align:center;" class="card">
-                <h2><i class="fas fa-dice"></i> Roulette</h2>
-                <div id="roulette-result" style="font-size:4rem; margin:20px 0;">🎲</div>
-                <input type="number" id="casino-bet" placeholder="Einsatz">
-                <div class="grid grid-2">
-                    <button class="btn btn-danger" onclick="Casino.spin('red')">Rot</button>
-                    <button class="btn" style="background:black; color:white;" onclick="Casino.spin('black')">Schwarz</button>
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Blackjack (High Card)</span></div>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 40px;" id="bj-result">♠️ vs ♥️</div>
+                    </div>
+                    <input id="bj-bet" type="number" placeholder="Einsatz">
+                    <button class="btn btn-primary btn-full" onclick="Casino.playBJ()">Deal</button>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Roulette</span></div>
+                    <div style="text-align: center; margin: 20px 0;">
+                        <div style="font-size: 40px; transition: 0.5s;" id="roul-wheel">🎡</div>
+                    </div>
+                    <input id="roul-bet" type="number" placeholder="Einsatz">
+                    <div class="grid grid-2">
+                        <button class="btn btn-danger" onclick="Casino.playRoulette('red')">Rot</button>
+                        <button class="btn" style="background: black; color: white;" onclick="Casino.playRoulette('black')">Schwarz</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Slots</span></div>
+                    <div style="text-align: center; margin: 20px 0; background: #000; padding: 10px; border-radius: 8px; border: 2px solid var(--neon-gold);">
+                        <span id="slot1" style="font-size: 30px;">🍒</span>
+                        <span id="slot2" style="font-size: 30px;">🍒</span>
+                        <span id="slot3" style="font-size: 30px;">🍒</span>
+                    </div>
+                    <input id="slot-bet" type="number" placeholder="Einsatz">
+                    <button class="btn btn-gold btn-full" onclick="Casino.playSlots()">Spin</button>
                 </div>
             </div>
         </div>
 
-    </div>
-
-    <div id="modal-product" class="modal">
-        <div class="modal-box">
-            <h2>Neues Produkt entwerfen</h2>
-            <label>Name</label>
-            <input id="prod-design-name" placeholder="z.B. iPhone 20">
-            <label>Verkaufspreis festlegen</label>
-            <input type="range" id="prod-design-price" min="10" max="500" value="100" oninput="Company.updatePreview()">
-            <p>Preis: <span id="preview-price" style="font-weight:bold; color:var(--accent)">100</span> €</p>
-            <p>Kundenmeinung: <span id="preview-sentiment">Neutral</span></p>
-            <button class="btn btn-success" onclick="Company.launchProduct()">Produktion starten</button>
-            <button class="btn btn-danger" style="margin-top:10px;" onclick="document.getElementById('modal-product').style.display='none'">Abbrechen</button>
+        <div id="view-estate" class="content-view">
+            <h1 style="margin-bottom: 20px;">Immobilienmarkt</h1>
+            <div id="estate-list" class="grid grid-4"></div>
         </div>
+
     </div>
 
-    <div id="modal-neg" class="modal">
-        <div class="modal-box">
-            <h2>Mietvertrag</h2>
-            <p>Marktwert: <span id="neg-val"></span> €</p>
-            <input id="neg-offer" type="number" placeholder="Deine Forderung">
-            <button class="btn btn-primary" onclick="Estate.submitOffer()">Angebot senden</button>
-            <button class="btn btn-danger" style="margin-top:10px;" onclick="document.getElementById('modal-neg').style.display='none'">Abbrechen</button>
+    <div id="modal-product" class="modal-overlay">
+        <div class="modal">
+            <h2>Neues Produkt</h2>
+            <input id="new-prod-name" placeholder="Name (z.B. iPhone)">
+            <label>Verkaufspreis</label>
+            <input id="new-prod-price" type="number" value="100">
+            <label>Komplexität (Kosten)</label>
+            <input id="new-prod-cost" type="range" min="10" max="500" value="50" oninput="document.getElementById('cost-disp').innerText=this.value+'€'">
+            <div style="text-align: right; margin-bottom: 20px;" id="cost-disp">50€</div>
+            <button class="btn btn-success btn-full" onclick="Company.createProduct()">Starten</button>
+            <button class="btn btn-danger btn-full" style="margin-top: 10px;" onclick="document.getElementById('modal-product').style.display='none'">Abbrechen</button>
         </div>
     </div>
 
     <script>
         /* --- GAME ENGINE --- */
-        const Game = {
-            cash: 50000,
-            
+        const App = {
+            data: {
+                cash: 50000,
+                day: 1,
+                company: null, // { name, staffPool, products: [] }
+                stocks: [],
+                estates: []
+            },
+            tick: 0,
+
             init: function() {
+                this.load();
                 Stocks.init();
                 Estate.init();
                 UI.update();
                 
-                // Main Loop (100ms)
-                setInterval(() => {
-                    Company.tick();
-                    Stocks.tick();
-                    UI.update();
-                }, 100);
+                // Loops
+                setInterval(() => this.fastLoop(), 100); // UI & Fast logic
+                setInterval(() => this.slowLoop(), 1000); // Economy logic
+                setInterval(() => this.save(), 10000); // Autosave
+            },
 
-                // Slow Loop (1s)
-                setInterval(() => {
-                    Estate.tick();
-                }, 1000);
+            fastLoop: function() {
+                Company.tick();
+                UI.updateFast();
+            },
+
+            slowLoop: function() {
+                this.data.day++;
+                Stocks.tick();
+                Estate.tick();
+                UI.updateSlow();
+            },
+
+            save: function() {
+                localStorage.setItem('imperium_save_v25', JSON.stringify(this.data));
+                UI.toast('Spiel gespeichert', 'info');
+            },
+
+            load: function() {
+                const save = localStorage.getItem('imperium_save_v25');
+                if (save) {
+                    this.data = JSON.parse(save);
+                    if(this.data.company) {
+                        document.getElementById('comp-setup').style.display = 'none';
+                        document.getElementById('comp-main').style.display = 'block';
+                        document.getElementById('comp-name-display').innerText = this.data.company.name;
+                        Company.renderProducts();
+                    }
+                }
+            },
+
+            reset: function() {
+                localStorage.removeItem('imperium_save_v25');
+                location.reload();
+            },
+
+            nav: function(viewId) {
+                document.querySelectorAll('.content-view').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                document.getElementById('view-'+viewId).classList.add('active');
+                event.currentTarget.classList.add('active');
+                if(viewId === 'stocks') Stocks.renderChart();
             }
         };
 
-        /* --- UI MANAGER --- */
+        /* --- UI --- */
         const UI = {
             toast: function(msg, type='info') {
                 const el = document.createElement('div');
                 el.className = 'toast';
-                el.innerHTML = type==='success' ? `<i class="fas fa-check"></i> ${msg}` : `<i class="fas fa-info-circle"></i> ${msg}`;
-                if(type==='error') el.style.borderLeftColor = 'var(--danger)';
-                document.getElementById('toast-area').appendChild(el);
+                let icon = type==='error' ? 'fa-exclamation-circle' : (type==='success' ? 'fa-check' : 'fa-info');
+                let color = type==='error' ? 'var(--neon-red)' : (type==='success' ? 'var(--neon-green)' : 'var(--neon-blue)');
+                el.style.borderLeftColor = color;
+                el.innerHTML = `<i class="fas ${icon}" style="color:${color}"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(el);
                 setTimeout(()=>el.remove(), 3000);
             },
-            update: function() {
-                document.querySelectorAll('#ui-cash, .cash-val').forEach(el => el.innerText = Game.cash.toLocaleString() + " €");
-                document.getElementById('dash-cash').innerText = Game.cash.toLocaleString() + " €";
-                
-                if(Company.active) {
-                    document.getElementById('dash-company-status').innerHTML = `<h3 style="color:var(--accent)">${Company.data.name}</h3><button class="btn btn-primary btn-sm" onclick="Nav.to('company')">Verwalten</button>`;
+            updateFast: function() {
+                document.querySelectorAll('#ui-cash, #dash-cash').forEach(el => el.innerText = App.data.cash.toLocaleString() + ' €');
+                if(App.data.company) {
+                    document.getElementById('pool-mats').innerText = Math.floor(App.data.company.mats);
+                    document.getElementById('pool-staff').innerText = App.data.company.staffPool;
+                    document.getElementById('dash-staff').innerText = App.data.company.staffPool + App.data.company.products.reduce((a,b)=>a+b.staff,0);
                 }
+            },
+            updateSlow: function() {
+                document.getElementById('ui-date').innerText = "Tag " + App.data.day;
             }
         };
 
-        const Nav = {
-            to: function(id) {
-                document.querySelectorAll('.view').forEach(e => e.classList.remove('active'));
-                document.querySelectorAll('.nav-btn').forEach(e => e.classList.remove('active'));
-                document.getElementById('view-'+id).classList.add('active');
-                
-                // Highlight button logic would go here
-            }
-        };
-
-        /* --- COMPANY SYSTEM (THE COMPLEX PART) --- */
+        /* --- COMPANY SYSTEM (MULTI-PRODUCT) --- */
         const Company = {
-            active: false,
-            data: null,
-            
             create: function() {
-                let name = document.getElementById('c-name').value;
-                if(!name) return UI.toast("Name fehlt!", "error");
-                if(Game.cash < 25000) return UI.toast("Zu wenig Geld!", "error");
-                
-                Game.cash -= 25000;
-                this.data = {
+                const name = document.getElementById('setup-name').value;
+                if(!name) return;
+                App.data.company = {
                     name: name,
-                    raw: 0, stock: 0, orders: 0,
-                    staff: { buy:0, make:0, sell:0, ship:0 },
-                    progress: { buy:0, make:0, sell:0, ship:0 },
-                    product: { name: "Prototyp", price: 50, cost: 10 }
+                    staffPool: 0,
+                    mats: 100,
+                    products: []
                 };
-                this.active = true;
-                
-                document.getElementById('comp-create').style.display = 'none';
-                document.getElementById('comp-manage').style.display = 'block';
-                document.getElementById('comp-header-name').innerText = name;
-                UI.toast("Firma gegründet!", "success");
+                App.data.cash += 50000; // Startbonus
+                document.getElementById('comp-setup').style.display = 'none';
+                document.getElementById('comp-main').style.display = 'block';
+                document.getElementById('comp-name-display').innerText = name;
             },
 
-            hire: function(role) {
-                if(Game.cash >= 500) {
-                    Game.cash -= 500;
-                    this.data.staff[role]++;
-                    this.updateUI();
-                } else UI.toast("Nicht genug Geld (500€)", "error");
+            hirePool: function(amount) {
+                const cost = amount * 500;
+                if(App.data.cash >= cost) {
+                    App.data.cash -= cost;
+                    App.data.company.staffPool += amount;
+                } else UI.toast("Nicht genug Geld!", 'error');
             },
-            fire: function(role) {
-                if(this.data.staff[role] > 0) {
-                    this.data.staff[role]--;
-                    this.updateUI();
+
+            buyMats: function() {
+                if(App.data.cash >= 1000) {
+                    App.data.cash -= 1000;
+                    App.data.company.mats += 500;
+                }
+            },
+
+            openProductModal: function() { document.getElementById('modal-product').style.display = 'flex'; },
+
+            createProduct: function() {
+                const name = document.getElementById('new-prod-name').value;
+                const price = parseInt(document.getElementById('new-prod-price').value);
+                const cost = parseInt(document.getElementById('new-prod-cost').value);
+                
+                App.data.company.products.push({
+                    id: Date.now(),
+                    name: name,
+                    price: price,
+                    cost: cost,
+                    staff: 0,
+                    stock: 0,
+                    progress: 0
+                });
+                this.renderProducts();
+                document.getElementById('modal-product').style.display = 'none';
+            },
+
+            renderProducts: function() {
+                const c = document.getElementById('product-list');
+                c.innerHTML = '';
+                App.data.company.products.forEach(p => {
+                    c.innerHTML += `
+                    <div class="card product-card" id="prod-${p.id}">
+                        <div class="card-header">
+                            <b>${p.name}</b>
+                            <small>${p.price}€ / Stk</small>
+                        </div>
+                        <div class="grid grid-2">
+                            <div>
+                                <small>Mitarbeiter</small>
+                                <h2 id="p-staff-${p.id}">${p.staff}</h2>
+                                <button class="btn btn-sm btn-primary" onclick="Company.assignStaff(${p.id}, 10)">+10</button>
+                                <button class="btn btn-sm" onclick="Company.removeStaff(${p.id}, 10)">-10</button>
+                            </div>
+                            <div>
+                                <small>Lager</small>
+                                <h2 style="color:var(--neon-gold)" id="p-stock-${p.id}">${Math.floor(p.stock)}</h2>
+                            </div>
+                        </div>
+                        <div class="progress-track" style="margin-top:15px"><div id="bar-${p.id}" class="progress-bar bar-prod"></div></div>
+                    </div>`;
+                });
+            },
+
+            assignStaff: function(id, amount) {
+                if(App.data.company.staffPool >= amount) {
+                    let p = App.data.company.products.find(x => x.id === id);
+                    App.data.company.staffPool -= amount;
+                    p.staff += amount;
+                    this.renderProducts(); // Refresh numbers
+                }
+            },
+            
+            removeStaff: function(id, amount) {
+                let p = App.data.company.products.find(x => x.id === id);
+                if(p.staff >= amount) {
+                    p.staff -= amount;
+                    App.data.company.staffPool += amount;
+                    this.renderProducts();
                 }
             },
 
             tick: function() {
-                if(!this.active) return;
-                const d = this.data;
-
-                // 1. EINKAUF (Raw Materials)
-                if(d.staff.buy > 0 && d.raw < d.staff.buy * 50) {
-                    d.progress.buy += d.staff.buy * 2;
-                    if(d.progress.buy >= 100) {
-                        if(Game.cash >= 10) { Game.cash -= 10; d.raw++; d.progress.buy = 0; }
+                if(!App.data.company) return;
+                const c = App.data.company;
+                
+                c.products.forEach(p => {
+                    // 1. Produktion
+                    if(p.staff > 0 && c.mats > 0) {
+                        let speed = p.staff * 0.1; // Skalierung
+                        p.progress += speed;
+                        if(p.progress >= 100) {
+                            // Produktion fertig
+                            let amount = Math.floor(p.progress / 100);
+                            if(c.mats >= amount) {
+                                c.mats -= amount;
+                                p.stock += amount;
+                                p.progress = p.progress % 100;
+                            }
+                        }
+                        // UI Bar update
+                        let bar = document.getElementById(`bar-${p.id}`);
+                        if(bar) bar.style.width = Math.min(100, p.progress) + "%";
+                        let stockEl = document.getElementById(`p-stock-${p.id}`);
+                        if(stockEl) stockEl.innerText = Math.floor(p.stock);
                     }
-                } else d.progress.buy = 0;
 
-                // 2. PRODUKTION (Make)
-                if(d.staff.make > 0 && d.raw > 0) {
-                    d.progress.make += d.staff.make * 2;
-                    if(d.progress.make >= 100) {
-                        d.raw--; d.stock++; d.progress.make = 0;
+                    // 2. Verkauf (Automatisch)
+                    if(p.stock > 0) {
+                        // Chance depends on price vs cost
+                        let attractiveness = (p.cost * 2) / p.price; 
+                        let sales = Math.floor(p.stock * 0.05 * attractiveness); // 5% des Lagers
+                        if(sales > 0) {
+                            p.stock -= sales;
+                            App.data.cash += sales * p.price;
+                        }
                     }
-                } else d.progress.make = 0;
-
-                // 3. VERKAUF (Find Customers)
-                if(d.staff.sell > 0) {
-                    // Chance depends on price
-                    let chance = (100 / d.product.price) * d.staff.sell;
-                    d.progress.sell += chance;
-                    if(d.progress.sell >= 100) {
-                        d.orders++; d.progress.sell = 0;
-                        this.log(`Auftrag erhalten (+${d.product.price}€)`);
-                    }
-                }
-
-                // 4. LOGISTIK (Ship & Cash)
-                if(d.staff.ship > 0 && d.orders > 0 && d.stock > 0) {
-                    d.progress.ship += d.staff.ship * 3;
-                    if(d.progress.ship >= 100) {
-                        d.stock--; d.orders--;
-                        Game.cash += d.product.price;
-                        d.progress.ship = 0;
-                    }
-                } else d.progress.ship = 0;
-
-                // WAGES (Small tick drain logic simulation)
-                if(Math.random() < 0.01) {
-                    let wages = (d.staff.buy + d.staff.make + d.staff.sell + d.staff.ship) * 10;
-                    if(Game.cash >= wages) Game.cash -= wages;
-                    else { // Strike logic
-                        UI.toast("Streik! Kein Geld für Löhne.", "error");
-                        d.staff.buy=0; d.staff.make=0; d.staff.sell=0; d.staff.ship=0;
-                    }
-                }
-
-                this.updateUI();
-            },
-
-            updateUI: function() {
-                const d = this.data;
-                document.getElementById('val-raw').innerText = d.raw;
-                document.getElementById('val-stock').innerText = d.stock;
-                document.getElementById('val-orders').innerText = d.orders;
-                document.getElementById('val-ship').innerText = d.orders > 0 && d.stock > 0 ? "Liefert..." : "Warten";
-
-                ['buy','make','sell','ship'].forEach(r => {
-                    document.getElementById('staff-'+r).innerText = d.staff[r];
-                    document.getElementById('bar-'+r).style.width = Math.min(100, d.progress[r]) + "%";
-                    // Visual active state
-                    const step = document.getElementById('step-'+r);
-                    if(d.progress[r] > 5) step.classList.add('step-active'); else step.classList.remove('step-active');
                 });
-
-                document.getElementById('ui-prod-name').innerText = d.product.name;
-                document.getElementById('ui-prod-price').innerText = d.product.price;
-                document.getElementById('ui-wages').innerText = (d.staff.buy + d.staff.make + d.staff.sell + d.staff.ship) * 100;
-            },
-
-            log: function(msg) {
-                let div = document.getElementById('contract-list');
-                div.innerHTML = `<div style="padding:5px; border-bottom:1px solid #333">${msg}</div>` + div.innerHTML;
-            },
-
-            // Designer
-            openDesigner: function() { document.getElementById('modal-product').style.display='flex'; },
-            updatePreview: function() {
-                let p = parseInt(document.getElementById('prod-design-price').value);
-                document.getElementById('preview-price').innerText = p;
-                let s = "Neutral";
-                if(p < 40) s = "Begeistert! (Sehr viele Verkäufe)";
-                else if(p > 150) s = "Wütend (Kaum Verkäufe)";
-                document.getElementById('preview-sentiment').innerText = s;
-            },
-            launchProduct: function() {
-                let n = document.getElementById('prod-design-name').value;
-                let p = parseInt(document.getElementById('prod-design-price').value);
-                if(n) {
-                    this.data.product.name = n;
-                    this.data.product.price = p;
-                    UI.toast("Produktion umgestellt!", "success");
-                    document.getElementById('modal-product').style.display='none';
-                }
             }
         };
 
-        /* --- STOCKS --- */
+        /* --- STOCK MARKET --- */
         const Stocks = {
-            list: [],
+            names: ["Apple", "Tesla", "Amazon", "Nvidia", "Google", "Meta", "Microsoft"],
             chart: null,
             selected: 0,
 
             init: function() {
-                const names = ["TechCorp", "Banana Inc", "SoftMicro", "GigaNet", "SpaceX"];
-                names.forEach((n,i) => {
-                    this.list.push({id:i, name:n, price:Math.random()*100+50, hist:Array(40).fill(100), owned:0});
-                });
-                
-                const ctx = document.getElementById('stockChart').getContext('2d');
-                this.chart = new Chart(ctx, {type:'line', data:{labels:Array(40).fill(''), datasets:[{data:[], borderColor:'#38bdf8', borderWidth:2, pointRadius:0, tension:0.1, fill:true, backgroundColor:'rgba(56,189,248,0.1)'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:false}, scales:{x:{display:false}, y:{grid:{color:'#334155'}}}}});
-                
+                if(App.data.stocks.length === 0) {
+                    this.names.forEach((n, i) => {
+                        App.data.stocks.push({
+                            id: i, name: n,
+                            price: Math.random() * 200 + 50,
+                            history: Array(50).fill(100),
+                            owned: 0, buyPrice: 0
+                        });
+                    });
+                }
                 this.renderList();
             },
 
             tick: function() {
-                this.list.forEach(s => {
-                    s.price += (Math.random()-0.5)*5;
-                    if(s.price<1) s.price=1;
-                    s.hist.shift(); s.hist.push(s.price);
+                App.data.stocks.forEach(s => {
+                    let change = (Math.random() - 0.5) * 5;
+                    s.price = Math.max(1, s.price + change);
+                    s.history.shift(); s.history.push(s.price);
                 });
                 if(document.getElementById('view-stocks').style.display === 'block') {
                     this.renderList();
@@ -507,110 +654,215 @@
             },
 
             renderList: function() {
-                let h = "";
-                this.list.forEach(s => {
-                    let change = s.price > s.hist[38] ? 'stock-up' : 'stock-down';
-                    h += `<div class="stock-item" onclick="Stocks.select(${s.id})" style="background:${this.selected===s.id?'rgba(56,189,248,0.1)':''}">
+                const el = document.getElementById('stock-list');
+                el.innerHTML = '';
+                App.data.stocks.forEach(s => {
+                    let change = s.price > s.history[48] ? 'up' : 'down';
+                    el.innerHTML += `
+                    <div class="stock-row" onclick="Stocks.select(${s.id})">
                         <div><b>${s.name}</b></div>
-                        <div class="${change}">${s.price.toFixed(2)}€</div>
+                        <div class="${change}">${s.price.toFixed(2)}</div>
+                        <div>${s.owned}</div>
                     </div>`;
                 });
-                document.getElementById('stock-list-container').innerHTML = h;
             },
 
-            select: function(id) { this.selected=id; this.updateChart(); },
+            select: function(id) {
+                this.selected = id;
+                this.updateChart();
+            },
+
             updateChart: function() {
-                let s = this.list[this.selected];
-                document.getElementById('chart-header').innerText = `${s.name} (${s.price.toFixed(2)}€)`;
+                const s = App.data.stocks[this.selected];
+                document.getElementById('stock-detail-name').innerText = s.name;
+                document.getElementById('stock-detail-price').innerText = s.price.toFixed(2) + " €";
                 document.getElementById('stock-owned').innerText = s.owned;
-                this.chart.data.datasets[0].data = s.hist;
-                this.chart.update('none');
-            },
-            
-            trade: function(type) {
-                let s = this.list[this.selected];
-                let qty = parseInt(document.getElementById('stock-amount').value);
-                if(type==='buy' && Game.cash >= s.price*qty) { Game.cash-=s.price*qty; s.owned+=qty; }
-                if(type==='sell' && s.owned >= qty) { Game.cash+=s.price*qty; s.owned-=qty; }
-            }
-        };
+                let val = s.owned * s.price;
+                document.getElementById('stock-val').innerText = val.toFixed(0) + " €";
 
-        /* --- REAL ESTATE --- */
-        const Estate = {
-            props: [{n:"Kiosk", c:10000, m:500, i:"🏪"}, {n:"Büro", c:50000, m:2000, i:"🏢"}, {n:"Fabrik", c:200000, m:8000, i:"🏭"}],
-            owned: [],
-            negIdx: 0,
-
-            init: function() {
-                let h="";
-                this.props.forEach((p,i) => {
-                    h += `<div class="card"><h1>${p.i}</h1><h3>${p.n}</h3><p>Miete: ~${p.m}€</p><button class="btn btn-success" onclick="Estate.buy(${i})">Kaufen ${p.c.toLocaleString()}€</button></div>`;
-                });
-                document.getElementById('estate-list').innerHTML = h;
-            },
-
-            buy: function(i) {
-                if(Game.cash >= this.props[i].c) {
-                    Game.cash -= this.props[i].c;
-                    this.owned.push({...this.props[i], tenant:false, rent:0});
-                    this.renderOwned();
-                    UI.toast("Gekauft!", "success");
+                if(!this.chart) {
+                    const ctx = document.getElementById('stockChart').getContext('2d');
+                    this.chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: Array(50).fill(''),
+                            datasets: [{ 
+                                data: s.history, borderColor: '#00f3ff', tension: 0.1, pointRadius: 0, borderWidth: 2 
+                            }]
+                        },
+                        options: { 
+                            responsive: true, maintainAspectRatio: false, 
+                            plugins: { legend: {display: false} },
+                            scales: { x: {display: false}, y: {grid: {color:'#333'}} },
+                            animation: false
+                        }
+                    });
+                } else {
+                    this.chart.data.datasets[0].data = s.history;
+                    this.chart.update();
                 }
             },
 
-            renderOwned: function() {
-                let h="";
-                this.owned.forEach((p,i) => {
-                    let st = p.tenant ? `<span style="color:var(--success)">Vermietet (${p.rent}€)</span>` : `<button class="btn btn-primary btn-sm" onclick="Estate.openNeg(${i})">Mieter suchen</button>`;
-                    h += `<div class="card"><h3>${p.n}</h3>${st}</div>`;
-                });
-                document.getElementById('my-estate-list').innerHTML = h;
+            trade: function(type) {
+                let qty = parseInt(document.getElementById('stock-amount').value);
+                let s = App.data.stocks[this.selected];
+                if(type === 'buy') {
+                    let cost = s.price * qty;
+                    if(App.data.cash >= cost) {
+                        App.data.cash -= cost; s.owned += qty;
+                        UI.toast("Gekauft!", 'success');
+                    } else UI.toast("Zu wenig Geld", 'error');
+                } else {
+                    if(s.owned >= qty) {
+                        App.data.cash += s.price * qty; s.owned -= qty;
+                        UI.toast("Verkauft!", 'success');
+                    }
+                }
+                this.updateChart();
             },
-
-            openNeg: function(i) { this.negIdx=i; document.getElementById('neg-val').innerText=this.owned[i].m; document.getElementById('modal-neg').style.display='flex'; },
             
-            submitOffer: function() {
-                let off = parseInt(document.getElementById('neg-offer').value);
-                let p = this.owned[this.negIdx];
-                if(Math.random() < (p.m / off)) {
-                    p.tenant = true; p.rent = off;
-                    document.getElementById('modal-neg').style.display='none';
-                    this.renderOwned();
-                    UI.toast("Mieter gefunden!", "success");
-                } else UI.toast("Angebot abgelehnt.", "error");
-            },
-
-            tick: function() {
-                let inc = 0;
-                this.owned.forEach(p => { if(p.tenant) inc += p.rent; });
-                if(inc > 0) { Game.cash += inc; UI.toast(`Mieteinnahmen: +${inc}€`); }
+            renderChart: function() {
+                setTimeout(() => { if(this.chart) this.chart.resize(); }, 100);
             }
         };
 
         /* --- CASINO --- */
         const Casino = {
-            spin: function(col) {
-                let b = parseInt(document.getElementById('casino-bet').value);
-                if(!b || Game.cash<b) return UI.toast("Einsatz ungültig", "error");
-                Game.cash -= b;
+            playRoulette: function(choice) {
+                let bet = parseInt(document.getElementById('roul-bet').value);
+                if(!bet || App.data.cash < bet) return UI.toast("Einsatz ungültig", 'error');
+                App.data.cash -= bet;
                 
-                let el = document.getElementById('roulette-result');
-                el.style.transform = "rotate(360deg)";
-                el.style.transition = "0.5s";
-                
+                let wheel = document.getElementById('roul-wheel');
+                wheel.style.transform = "rotate(720deg)";
                 setTimeout(() => {
-                    el.style.transform = "rotate(0deg)";
+                    wheel.style.transform = "rotate(0deg)";
                     let win = Math.random() > 0.5 ? 'red' : 'black';
-                    el.innerText = win==='red' ? '🔴' : '⚫';
-                    
-                    if(win === col) { Game.cash += b*2; UI.toast("Gewonnen!", "success"); }
-                    else UI.toast("Verloren", "error");
+                    wheel.innerText = win === 'red' ? '🔴' : '⚫';
+                    if(win === choice) {
+                        App.data.cash += bet * 2;
+                        UI.toast(`Gewonnen! +${bet*2}€`, 'success');
+                    } else UI.toast("Verloren", 'error');
                 }, 500);
+            },
+
+            playSlots: function() {
+                let bet = parseInt(document.getElementById('slot-bet').value);
+                if(!bet || App.data.cash < bet) return UI.toast("Einsatz ungültig", 'error');
+                App.data.cash -= bet;
+                
+                const syms = ['🍒','🍋','7️⃣','💎'];
+                let r1 = syms[Math.floor(Math.random()*4)];
+                let r2 = syms[Math.floor(Math.random()*4)];
+                let r3 = syms[Math.floor(Math.random()*4)];
+                
+                document.getElementById('slot1').innerText = r1;
+                document.getElementById('slot2').innerText = r2;
+                document.getElementById('slot3').innerText = r3;
+                
+                if(r1 === r2 && r2 === r3) {
+                    let mult = r1 === '7️⃣' ? 50 : 10;
+                    App.data.cash += bet * mult;
+                    UI.toast(`JACKPOT! +${bet*mult}€`, 'success');
+                }
+            },
+
+            startRace: function() {
+                let bet = parseInt(document.getElementById('horse-bet').value);
+                let choice = parseInt(document.getElementById('horse-select').value);
+                if(!bet || App.data.cash < bet) return UI.toast("Einsatz ungültig", 'error');
+                App.data.cash -= bet;
+
+                let horses = [0, 0, 0];
+                let interval = setInterval(() => {
+                    for(let i=0; i<3; i++) {
+                        if(Math.random() > 0.3) horses[i] += Math.random() * 5;
+                        let el = document.querySelector(`#lane-${i} .horse`);
+                        el.style.left = horses[i] + "%";
+                        
+                        if(horses[i] >= 90) {
+                            clearInterval(interval);
+                            if(i === choice) {
+                                App.data.cash += bet * 3;
+                                UI.toast("Dein Pferd hat gewonnen!", 'success');
+                            } else {
+                                UI.toast(`Pferd ${i+1} hat gewonnen. Du verlierst.`, 'error');
+                            }
+                        }
+                    }
+                }, 50);
+            },
+
+            playBJ: function() {
+                let bet = parseInt(document.getElementById('bj-bet').value);
+                if(!bet || App.data.cash < bet) return UI.toast("Einsatz ungültig", 'error');
+                App.data.cash -= bet;
+                
+                let player = Math.floor(Math.random() * 10) + 12; // 12-21
+                let dealer = Math.floor(Math.random() * 10) + 12;
+                if(player > 21) player = 0;
+                
+                document.getElementById('bj-result').innerText = `${player} vs ${dealer}`;
+                if(player > dealer) {
+                    App.data.cash += bet * 2;
+                    UI.toast("Blackjack Sieg!", 'success');
+                } else {
+                    UI.toast("Dealer gewinnt.", 'error');
+                }
+            }
+        };
+
+        /* --- ESTATE --- */
+        const Estate = {
+            props: [
+                {id:1, n:"Kiosk", c:10000, i:100},
+                {id:2, n:"Wohnung", c:50000, i:600},
+                {id:3, n:"Hotel", c:200000, i:3000},
+                {id:4, n:"Wolkenkratzer", c:1000000, i:15000}
+            ],
+            
+            init: function() {
+                if(App.data.estates.length === 0) App.data.estates = this.props.map(p => ({...p, owned: 0}));
+                this.render();
+            },
+
+            tick: function() {
+                let income = 0;
+                App.data.estates.forEach(p => {
+                    income += p.owned * p.i;
+                });
+                if(income > 0) {
+                    App.data.cash += (income / 60); // Income per second calculation
+                }
+            },
+
+            render: function() {
+                let c = document.getElementById('estate-list');
+                c.innerHTML = '';
+                App.data.estates.forEach((p, i) => {
+                    c.innerHTML += `
+                    <div class="card">
+                        <div class="card-header"><span class="card-title">${p.n}</span></div>
+                        <h2 style="color:var(--neon-green)">+${p.i}€ / Min</h2>
+                        <p>Besitz: <b>${p.owned}</b></p>
+                        <button class="btn btn-primary btn-full" onclick="Estate.buy(${i})">Kaufen (${p.c.toLocaleString()}€)</button>
+                    </div>`;
+                });
+            },
+
+            buy: function(index) {
+                let p = App.data.estates[index];
+                if(App.data.cash >= p.c) {
+                    App.data.cash -= p.c;
+                    p.owned++;
+                    this.render();
+                    UI.toast("Immobilie gekauft!", 'success');
+                } else UI.toast("Zu wenig Geld", 'error');
             }
         };
 
         // START
-        Game.init();
+        App.init();
 
     </script>
 </body>
