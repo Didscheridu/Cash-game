@@ -3,88 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Imperium: CEO Edition</title>
+    <title>Business Imperium: Tycoon</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg: #0b1120; --panel: #1e293b; --border: #334155;
-            --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --gold: #eab308; --purple: #d946ef;
+            --accent: #38bdf8; --green: #22c55e; --red: #ef4444; --gold: #eab308;
             --text: #f8fafc;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; user-select: none; }
         
-        /* ANIMATIONS */
-        @keyframes pop { 0% { transform: scale(0.95); opacity:0; } 100% { transform: scale(1); opacity:1; } }
-        @keyframes flashGreen { 0% { background: rgba(34, 197, 94, 0.3); } 100% { background: transparent; } }
-        @keyframes flashRed { 0% { background: rgba(239, 68, 68, 0.3); } 100% { background: transparent; } }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
-
-        /* SCROLLBAR HIDING */
-        * { scrollbar-width: none; } /* Firefox */
-        *::-webkit-scrollbar { display: none; } /* Chrome/Safari */
-
-        /* LAYOUT */
+        /* LAYOUT & UI */
         .view { display: none; height: 100vh; padding: 20px; box-sizing: border-box; overflow-y: auto; max-width: 1600px; margin: 0 auto; }
-        .view.active { display: block; animation: pop 0.3s ease-out; }
+        .view.active { display: block; animation: fade 0.3s; }
+        @keyframes fade { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
         
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .btn { background: var(--border); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--panel); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .btn { background: var(--border); color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn:active { transform: scale(0.95); }
         .btn-green { background: var(--green); color: black; }
         .btn-red { background: var(--red); color: white; }
-        .btn-gold { background: var(--gold); color: black; }
         .btn-accent { background: var(--accent); color: black; }
         
-        input, select { background: var(--bg); border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; text-align: center; width: 100%; box-sizing: border-box; }
+        input { background: var(--bg); border: 1px solid var(--border); color: white; padding: 10px; border-radius: 6px; text-align: center; width: 100%; box-sizing: border-box; }
 
         /* MENU */
         #menu { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at top, #1e293b 0%, #0b1120 100%); }
         .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 900px; width: 100%; padding: 20px; }
-        .card { background: var(--panel); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; border: 1px solid var(--border); transition: 0.3s; position: relative; overflow: hidden; }
+        .card { background: var(--panel); padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; border: 1px solid var(--border); transition: 0.3s; }
         .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .card h2 { margin: 10px 0 5px 0; }
 
-        /* STOCK MARKET 2.0 */
+        /* --- COMPANY TYCOON STYLES --- */
+        .creation-form { max-width: 600px; margin: 0 auto; background: var(--panel); padding: 30px; border-radius: 15px; border: 1px solid var(--accent); }
+        .material-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; text-align: left; }
+        .mat-check { display: flex; align-items: center; gap: 5px; background: #0f172a; padding: 10px; border-radius: 5px; cursor: pointer; border: 1px solid var(--border); }
+        .mat-check input { width: auto; }
+        .mat-check:hover { border-color: var(--accent); }
+
+        .dept-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .dept-card { background: #162032; padding: 15px; border-radius: 10px; border-top: 4px solid #666; display: flex; flex-direction: column; justify-content: space-between; min-height: 250px; }
+        .dept-buy { border-color: var(--accent); }
+        .dept-make { border-color: var(--gold); }
+        .dept-sell { border-color: var(--green); }
+        
+        .worker-count { font-size: 2em; font-weight: bold; margin: 10px 0; }
+        .progress-track { background: #000; height: 15px; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.2s linear; }
+        
+        .console-log { background: #000; color: #0f0; font-family: monospace; height: 150px; overflow-y: auto; padding: 10px; border-radius: 5px; font-size: 0.8em; border: 1px solid #333; margin-top: 20px; }
+        .log-entry { margin-bottom: 2px; border-bottom: 1px solid #111; }
+
+        /* STOCK MARKET */
         .stock-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: 85vh; }
-        .list-panel { background: var(--panel); border-radius: 12px; overflow-y: auto; border: 1px solid var(--border); }
-        .detail-panel { background: var(--panel); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; border: 1px solid var(--border); }
-        
+        .list-panel { background: var(--panel); overflow-y: auto; border-radius: 10px; }
         table { width: 100%; border-collapse: collapse; }
-        th { position: sticky; top: 0; background: #0f172a; padding: 15px; text-align: left; border-bottom: 2px solid var(--border); z-index: 2; color: #94a3b8; }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); transition: background 0.3s; }
+        td, th { padding: 12px; border-bottom: 1px solid var(--border); text-align: left; }
         tr:hover { background: #334155; cursor: pointer; }
-        .row-up { animation: flashGreen 1s; }
-        .row-down { animation: flashRed 1s; }
-
-        .hacker-panel { margin-top: 15px; padding: 15px; background: #2a1010; border: 1px solid #5a2020; border-radius: 8px; }
-        .bot-active { animation: pulse 1s infinite; border-color: var(--accent); color: var(--accent); background: rgba(56, 189, 248, 0.1); }
-
-        /* BUSINESS & COMPANY */
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab { flex: 1; padding: 12px; background: var(--panel); border: 1px solid var(--border); color: #888; cursor: pointer; text-align: center; border-radius: 8px; font-weight: bold; transition: 0.2s; }
-        .tab:hover { background: #334155; }
-        .tab.active { background: var(--accent); color: black; border-color: var(--accent); }
         
-        .section { display: none; animation: pop 0.2s; }
-        .section.active { display: block; }
-
-        .grid-box { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; }
-        .item-card { background: var(--panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
-        
-        /* COMPANY DASHBOARD */
-        .company-dash { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .dash-card { background: #182030; padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
-        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        .progress-container { background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; }
-        .progress-bar { height: 100%; background: var(--green); width: 0%; transition: width 0.2s linear; }
-
-        /* NOTIFICATIONS & MODALS */
-        #notif-area { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        /* NOTIFICATIONS */
+        #notif-area { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
         .notif { background: rgba(15, 23, 42, 0.95); border-left: 4px solid var(--accent); padding: 15px; width: 300px; color: white; border-radius: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 200; display: none; justify-content: center; align-items: center; }
-        .modal-box { background: var(--panel); padding: 30px; border-radius: 15px; border: 1px solid var(--accent); width: 90%; max-width: 450px; text-align: center; box-shadow: 0 0 50px rgba(56, 189, 248, 0.2); }
-
     </style>
 </head>
 <body>
@@ -92,15 +70,14 @@
     <div id="notif-area"></div>
 
     <div id="menu">
-        <h1 style="color:var(--accent); font-size:4em; margin:0; letter-spacing: 5px; text-transform: uppercase;">Imperium</h1>
-        <p style="color:#64748b; margin-top:-10px; margin-bottom: 30px;">CEO EDITION 17.0</p>
+        <h1 style="color:var(--accent); font-size:4em; margin:0; letter-spacing: 5px;">IMPERIUM</h1>
+        <p style="color:#64748b; margin-bottom: 30px;">INDUSTRIAL UPDATE 18.0</p>
         <h2 style="color:var(--green); font-family:monospace; font-size:3em; margin-bottom:50px;" class="display-cash"></h2>
-        
         <div class="menu-grid">
-            <div class="card" onclick="nav('stocks')"><h1>📈</h1><h2>Aktienmarkt</h2><p style="color:#888">12 Firmen, Realtime Charts</p></div>
-            <div class="card" onclick="nav('biz')"><h1>🏢</h1><h2>Firma & Business</h2><p style="color:#888">Gründe dein Unternehmen</p></div>
-            <div class="card" onclick="nav('loot')"><h1>🎒</h1><h2>Auktionen</h2><p style="color:#888">Inventar & Handel</p></div>
-            <div class="card" onclick="nav('casino')"><h1>🎰</h1><h2>Casino</h2><p style="color:#888">Slots & Roulette</p></div>
+            <div class="card" onclick="nav('stocks')"><h1>📈</h1><h2>Aktienmarkt</h2><p>Full-Screen Charts</p></div>
+            <div class="card" onclick="nav('company')"><h1>🏭</h1><h2>Meine Firma</h2><p>Produktion & Management</p></div>
+            <div class="card" onclick="nav('estate')"><h1>🏙️</h1><h2>Immobilien</h2><p>Vermieter werden</p></div>
+            <div class="card" onclick="nav('casino')"><h1>🎰</h1><h2>Casino</h2><p>High Stakes</p></div>
         </div>
     </div>
 
@@ -111,431 +88,333 @@
         </div>
         <div class="stock-layout">
             <div class="list-panel">
-                <table><thead><tr><th>Symbol</th><th>Kurs</th><th>Trend</th></tr></thead><tbody id="stock-list"></tbody></table>
+                <table><thead><tr><th>Symbol</th><th>Kurs</th></tr></thead><tbody id="stock-list"></tbody></table>
             </div>
-            <div class="detail-panel">
-                <div style="display:flex; justify-content:space-between; align-items: flex-end;">
-                    <div><h1 id="st-name" style="margin:0">Apple</h1><p id="st-ticker" style="color:#64748b; margin:0">AAPL</p></div>
-                    <h1 id="st-price" style="margin:0; font-family:monospace">150.00 €</h1>
+            <div style="background:var(--panel); padding:20px; border-radius:10px; display:flex; flex-direction:column;">
+                <div style="display:flex; justify-content:space-between;">
+                    <h1 id="st-name" style="margin:0">Apple</h1>
+                    <h1 id="st-price" style="font-family:monospace; margin:0">150 €</h1>
                 </div>
-                <div style="flex:1; position:relative; min-height:300px; margin: 20px 0;"><canvas id="chart"></canvas></div>
-                
-                <div class="hacker-panel">
-                    <div style="color:var(--red); font-weight:bold; font-family:monospace; margin-bottom:5px;">⚠️ MARKT-MANIPULATOR</div>
-                    <div style="display:flex; gap:10px;">
-                        <input id="hack-target" placeholder="Zielpreis €" type="number">
-                        <input id="hack-time" placeholder="Sekunden" type="number" style="width:80px" value="10">
-                        <button class="btn btn-red" onclick="startHack()">🚀 START</button>
-                    </div>
-                </div>
-
-                <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <input id="st-qty" type="number" value="10" style="grid-column:span 2">
-                    <button class="btn btn-green" onclick="trade('buy')">Kaufen</button>
-                    <button class="btn btn-red" onclick="trade('sell')">Verkaufen</button>
-                    <button id="btn-bot" class="btn" style="grid-column:span 2; border:1px solid var(--accent)" onclick="toggleBot()">🤖 Auto-Trader Bot</button>
+                <div style="flex:1; position:relative; min-height:300px; margin:20px 0;"><canvas id="chart"></canvas></div>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn btn-green" style="flex:1" onclick="tradeStock('buy')">Kaufen</button>
+                    <button class="btn btn-red" style="flex:1" onclick="tradeStock('sell')">Verkaufen</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="view-biz" class="view">
+    <div id="view-company" class="view">
         <div class="top-bar">
             <button class="btn" onclick="nav('menu')">🏠 Menü</button>
             <span class="display-cash" style="font-size:1.5em; font-family:monospace; color:var(--green)"></span>
         </div>
-        
-        <div class="tabs">
-            <div class="tab active" onclick="tab('biz', 'company')">🏢 Meine Firma</div>
-            <div class="tab" onclick="tab('biz', 'estate')">🏘️ Immobilien</div>
-            <div class="tab" onclick="tab('biz', 'jobs')">💼 Jobs</div>
-        </div>
 
-        <div id="tab-company" class="section active">
-            <div id="company-create" style="max-width:500px; margin:50px auto; text-align:center;">
-                <h1>Gründe dein Unternehmen</h1>
-                <p style="color:#888; margin-bottom:30px;">Werde CEO. Produziere Waren oder handele mit Gütern.</p>
-                <input id="comp-name" placeholder="Firmenname (z.B. Tesla 2.0)" style="font-size:1.2em; margin-bottom:10px;">
-                <select id="comp-type" style="font-size:1.2em; margin-bottom:20px;">
-                    <option value="prod">🏭 Produktion (Hersteller)</option>
-                    <option value="retail">🏪 Handel (Supermarkt)</option>
-                </select>
-                <p style="color:var(--gold)">Startkapital erforderlich: 25.000 €</p>
-                <button class="btn btn-accent" style="width:100%; padding:15px; font-size:1.2em;" onclick="foundCompany()">Firma gründen</button>
+        <div id="comp-create" class="creation-form">
+            <h1 style="text-align:center">🏭 Fabrik eröffnen</h1>
+            <p style="color:#888; text-align:center">Entwerfe dein Produkt und die Lieferkette.</p>
+            
+            <label>Firmenname</label>
+            <input id="c-name" placeholder="z.B. CyberCorp">
+            
+            <label style="margin-top:15px; display:block">Produktname</label>
+            <input id="c-prod" placeholder="z.B. Quanten-Toaster">
+
+            <p style="margin-top:20px; font-weight:bold">Benötigte Rohstoffe (Wähle mind. 1):</p>
+            <div class="material-grid" id="mat-selection">
+                </div>
+            
+            <div style="background:#000; padding:15px; border-radius:5px; margin-top:20px;">
+                <div style="display:flex; justify-content:space-between;"><span>Materialkosten:</span> <span id="calc-cost">0 €</span></div>
+                <div style="display:flex; justify-content:space-between; color:var(--green); font-weight:bold; font-size:1.2em;"><span>Marktpreis:</span> <span id="calc-price">0 €</span></div>
             </div>
 
-            <div id="company-dash" style="display:none;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <h1 id="dash-title">MEINE FIRMA</h1>
-                    <div style="text-align:right">
-                        <span id="comp-level" style="background:var(--accent); color:black; padding:5px 10px; border-radius:5px; font-weight:bold;">Level 1</span>
+            <button class="btn btn-accent" style="width:100%; margin-top:20px; font-size:1.2em" onclick="foundCompany()">Firma gründen (50.000 €)</button>
+        </div>
+
+        <div id="comp-dash" style="display:none">
+            <h1 id="dash-header" style="text-align:center; text-transform:uppercase; letter-spacing:5px; color:var(--accent)">FIRMA</h1>
+            
+            <div style="display:flex; justify-content:space-around; background:var(--panel); padding:15px; border-radius:10px; margin-bottom:20px;">
+                <div>📦 Rohstoffe: <span id="stock-raw" style="color:var(--accent); font-weight:bold">0</span></div>
+                <div>🏭 Produkte: <span id="stock-fin" style="color:var(--gold); font-weight:bold">0</span></div>
+                <div>💸 Lohnkosten: <span id="wage-cost" style="color:var(--red)">0</span> € / min</div>
+            </div>
+
+            <div class="dept-grid">
+                <div class="dept-card dept-buy">
+                    <h3>🔵 EINKAUF</h3>
+                    <p style="font-size:0.8em; color:#888">Kauft Rohstoffe automatisch.</p>
+                    <div class="worker-count" id="count-buy">0</div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-green" style="flex:1" onclick="hire('buy')">+ Hire</button>
+                        <button class="btn btn-red" onclick="fire('buy')">-</button>
                     </div>
                 </div>
 
-                <div class="company-dash">
-                    <div class="dash-card">
-                        <h2>⚙️ Betrieb</h2>
-                        <div class="stat-row"><span>Mitarbeiter:</span> <span id="comp-emp">0</span></div>
-                        <div class="stat-row"><span>Gehaltskosten:</span> <span id="comp-wages" style="color:var(--red)">0 € / 30s</span></div>
-                        <div class="stat-row"><span>Lagerbestand:</span> <span id="comp-stock">0</span></div>
-                        
-                        <div style="margin-top:20px; display:flex; gap:10px;">
-                            <button class="btn btn-green" style="flex:1" onclick="hireEmp()">👨‍💼 Einstellen (+500€)</button>
-                            <button class="btn btn-red" style="flex:1" onclick="fireEmp()">🔥 Feuern</button>
-                        </div>
+                <div class="dept-card dept-make">
+                    <h3>🟡 PRODUKTION</h3>
+                    <p style="font-size:0.8em; color:#888">Verarbeitet Rohstoffe.</p>
+                    <div class="worker-count" id="count-make">0</div>
+                    
+                    <div class="progress-track"><div id="prog-bar" class="progress-fill" style="background:var(--gold)"></div></div>
+                    
+                    <div style="display:flex; gap:5px; margin-top:auto;">
+                        <button class="btn btn-green" style="flex:1" onclick="hire('make')">+ Hire</button>
+                        <button class="btn btn-red" onclick="fire('make')">-</button>
                     </div>
+                </div>
 
-                    <div class="dash-card">
-                        <h2 id="action-title">Produktion</h2>
-                        <p id="action-desc" style="color:#888">Rohstoffe kaufen & verarbeiten</p>
-                        
-                        <div id="prod-ui">
-                            <button class="btn" style="width:100%; margin-bottom:10px;" onclick="compAction('buy')">📦 Material kaufen (-200€)</button>
-                            <div class="progress-container"><div id="prod-bar" class="progress-bar"></div></div>
-                            <p style="text-align:center; font-size:0.8em; color:#666">Mitarbeiter arbeiten automatisch...</p>
-                            <button class="btn btn-gold" style="width:100%; margin-top:10px;" onclick="compAction('sell')">💰 Lager verkaufen</button>
-                        </div>
+                <div class="dept-card dept-sell">
+                    <h3>🟢 VERTRIEB</h3>
+                    <p style="font-size:0.8em; color:#888">Verkauft an Kunden.</p>
+                    <div class="worker-count" id="count-sell">0</div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn btn-green" style="flex:1" onclick="hire('sell')">+ Hire</button>
+                        <button class="btn btn-red" onclick="fire('sell')">-</button>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div id="tab-estate" class="section">
-            <div class="grid-box" id="estate-list"></div>
-            <hr style="border-color:var(--border); margin:30px 0;">
-            <h2>Mein Besitz</h2>
-            <div class="grid-box" id="my-estate-list"></div>
-        </div>
-
-        <div id="tab-jobs" class="section">
-            <div class="grid-box">
-                <div class="item-card">
-                    <h3>🍔 Fast Food</h3><p>Burger braten</p>
-                    <div class="progress-container"><div id="job-1-bar" class="progress-bar"></div></div>
-                    <button class="btn" style="width:100%; margin-top:10px;" onmousedown="workJob(1)">Arbeiten (+100€)</button>
-                </div>
-                <div class="item-card">
-                    <h3>💻 Freelancer</h3><p>Code schreiben</p>
-                    <div class="progress-container"><div id="job-2-bar" class="progress-bar"></div></div>
-                    <button class="btn btn-accent" style="width:100%; margin-top:10px;" onmousedown="workJob(2)">Arbeiten (+500€)</button>
-                </div>
+            <div class="console-log" id="comp-log">
+                <div class="log-entry">System bereit...</div>
             </div>
         </div>
     </div>
 
-    <div id="view-loot" class="view">
+    <div id="view-estate" class="view">
         <div class="top-bar"><button class="btn" onclick="nav('menu')">🏠 Menü</button><span class="display-cash"></span></div>
-        <div class="grid-box" style="margin-bottom:20px;">
-            <div class="item-card" onclick="buyLoot(200)"><h1>📦</h1><h3>Box (200€)</h3></div>
-            <div class="item-card" onclick="buyLoot(1500)"><h1>🚚</h1><h3>Truck (1.5k)</h3></div>
-            <div class="item-card" onclick="buyLoot(8000)"><h1>🚢</h1><h3>Container (8k)</h3></div>
-        </div>
-        <h2>Inventar <small id="inv-count"></small></h2>
-        <button class="btn" onclick="sellAllLoot()">Alles verkaufen</button>
-        <div id="inv-list" class="grid-box" style="margin-top:10px;"></div>
+        <div id="estate-list" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:15px;"></div>
     </div>
 
     <div id="view-casino" class="view">
         <div class="top-bar"><button class="btn" onclick="nav('menu')">🏠 Menü</button><span class="display-cash"></span></div>
-        <div class="tabs">
-            <div class="tab active" onclick="tab('casino', 'slots')">Slots</div>
-            <div class="tab" onclick="tab('casino', 'roulette')">Roulette</div>
-        </div>
-        <div id="tab-slots" class="section active" style="text-align:center;">
-            <div style="font-size:4em; margin:20px; background:black; padding:20px; border-radius:10px; border:2px solid var(--gold); display:inline-block;">
-                <span id="s1">🍒</span> <span id="s2">🍒</span> <span id="s3">🍒</span>
-            </div>
-            <p>Einsatz: 100€</p>
-            <button class="btn btn-gold" style="font-size:1.5em; padding:10px 40px;" onclick="spinSlots()">SPIN</button>
-        </div>
-        <div id="tab-roulette" class="section" style="text-align:center;">
-            <div id="r-wheel" style="font-size:6em; margin:20px; transition:1s;">🎲</div>
-            <input id="r-bet" type="number" placeholder="Einsatz" style="font-size:1.5em; width:200px;">
+        <div style="text-align:center; margin-top:50px">
+            <h1 style="font-size:5em">🎰</h1>
+            <input type="number" id="bet" placeholder="Einsatz" style="width:200px; font-size:1.5em">
             <br><br>
-            <button class="btn btn-red" onclick="spinRoulette('red')">Rot</button>
-            <button class="btn" style="background:black" onclick="spinRoulette('black')">Schwarz</button>
-        </div>
-    </div>
-
-    <div id="modal-neg" class="modal">
-        <div class="modal-box">
-            <h2>Mietpreis</h2>
-            <p>Markt: <span id="neg-market" style="color:var(--accent)"></span> €</p>
-            <input id="neg-input" type="number" placeholder="Forderung">
-            <br><br>
-            <button class="btn btn-green" onclick="submitRent()">Angebot senden</button>
-            <button class="btn" onclick="closeModals()">Abbrechen</button>
-        </div>
-    </div>
-
-    <div id="modal-loot" class="modal">
-        <div class="modal-box">
-            <h2>Container Inhalt</h2>
-            <div id="loot-content" style="display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin:20px 0;"></div>
-            <button class="btn btn-green" onclick="closeModals()">OK</button>
+            <button class="btn btn-red" onclick="spin()">Rot/Schwarz (50%)</button>
         </div>
     </div>
 
     <script>
-        // --- CORE DATA ---
-        let cash = 50000;
-        let inventory = [];
-        let myProps = [];
-        let myCompany = null;
+        // --- DATA ---
+        let cash = 60000;
+        let company = null;
         let stocks = [];
-        const stockNames = ["Apple", "Tesla", "Amazon", "Google", "Microsoft", "Netflix", "Nvidia", "Meta", "Samsung", "Intel", "AMD", "Spotify"];
-        let selStockId = 0;
-        let chart;
-        let botActive = false;
-
-        // DBs
-        const propDB = [
-            {n:"Wohnung", c:5000, m:300, i:"🏠", t:"res"},
-            {n:"Penthouse", c:50000, m:2500, i:"🏢", t:"res"},
-            {n:"Kiosk", c:15000, m:1000, i:"🏪", t:"com"},
-            {n:"Supermarkt", c:100000, m:8000, i:"🛒", t:"com"}
+        const stockNames = ["Tesla", "Apple", "Amazon", "Google", "Meta", "Nvidia", "AMD", "Intel", "Netflix", "Spotify"];
+        
+        // Material DB
+        const rawMaterials = [
+            {id:'wood', n:'Holz', c:10}, {id:'plastic', n:'Plastik', c:20}, 
+            {id:'metal', n:'Metall', c:50}, {id:'silicon', n:'Silizium', c:100}, 
+            {id:'gold', n:'Gold', c:500}, {id:'lithium', n:'Lithium', c:200}
         ];
-        const itemDB = [{n:"Socke",v:5,i:"🧦"},{n:"Stein",v:1,i:"🪨"},{n:"Handy",v:500,i:"📱"},{n:"Laptop",v:1200,i:"💻"},{n:"Gold",v:5000,i:"🥇"},{n:"Diamant",v:25000,i:"💎"}];
 
-        // --- INIT ---
-        // Generiere 12 Aktien
-        stockNames.forEach((n, i) => {
-            stocks.push({
-                id: i, name: n, ticker: n.substring(0,4).toUpperCase(),
-                price: Math.random()*200+50, base: Math.random()*200+50,
-                hist: Array(50).fill(0), owned: 0,
-                hack: { active:false, start:0, target:0, dur:0, tick:0 }
-            });
-            stocks[i].hist.fill(stocks[i].price);
-        });
-
-        // Chart
-        const ctx = document.getElementById('chart').getContext('2d');
-        chart = new Chart(ctx, { type:'line', data:{labels:Array(50).fill(''), datasets:[{data:[], borderColor:'#38bdf8', borderWidth:2, pointRadius:0, tension:0.2, fill:true, backgroundColor:'rgba(56,189,248,0.1)'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:false}, scales:{x:{display:false}, y:{grid:{color:'#334155'}}}} });
-
-        // --- NAVIGATION ---
+        // --- CORE ---
         function fmt(n) { return n.toLocaleString('de-DE', {style:'currency', currency:'EUR'}); }
-        function notify(msg, type='good') {
-            let n = document.createElement('div'); n.className='notif'; n.innerText=msg; 
-            n.style.borderColor = type==='bad' ? 'var(--red)' : 'var(--accent)';
-            document.getElementById('notif-area').appendChild(n);
-            setTimeout(()=>n.remove(), 3000);
+        function notify(msg) {
+            let n = document.createElement('div'); n.className='notif'; n.innerText=msg;
+            document.getElementById('notif-area').appendChild(n); setTimeout(()=>n.remove(),3000);
+        }
+        function log(msg) {
+            let l = document.getElementById('comp-log');
+            let e = document.createElement('div'); e.className='log-entry'; e.innerText=`> ${msg}`;
+            l.prepend(e); if(l.children.length>20) l.lastChild.remove();
         }
         function ui() {
             document.querySelectorAll('.display-cash').forEach(e=>e.innerText=fmt(cash));
-            renderInv();
-            if(myCompany) updateCompanyUI();
+            if(company) updateCompUI();
         }
         function nav(id) {
             document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
-            document.getElementById('menu').style.display = id==='menu'?'flex':'none';
+            document.getElementById('menu').style.display=id==='menu'?'flex':'none';
             if(id!=='menu') {
                 document.getElementById('view-'+id).classList.add('active');
-                if(id==='stocks') setTimeout(()=>chart.resize(), 100);
-                if(id==='biz') renderEstate();
+                if(id==='stocks') resizeChart();
             }
         }
-        function tab(ctx, id) {
-            document.querySelectorAll(`#view-${ctx} .section`).forEach(e=>e.classList.remove('active'));
-            document.querySelectorAll(`#view-${ctx} .tab`).forEach(e=>e.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
-            event.target.classList.add('active');
-        }
-        function closeModals() { document.querySelectorAll('.modal').forEach(e=>e.style.display='none'); }
 
-        // --- STOCKS LOGIC ---
-        setInterval(() => {
-            stocks.forEach(s => {
-                let old = s.price;
-                if(s.hack.active) {
-                    s.hack.tick++; let p = s.hack.tick/s.hack.dur;
-                    if(p>=1) { s.price=s.hack.target; s.hack.active=false; notify(`${s.name} Ziel erreicht!`); }
-                    else s.price = s.hack.start + (s.hack.target-s.hack.start)*p + (Math.random()-0.5)*5;
-                } else {
-                    s.price += (Math.random()-0.5)*(s.price*0.03);
-                    s.price += (s.base - s.price)*0.01; // Mean Reversion
-                }
-                if(s.price<1) s.price=1;
-                s.hist.shift(); s.hist.push(s.price);
-                s.dir = s.price >= old ? 'up' : 'down';
-            });
-            if(document.getElementById('view-stocks').classList.contains('active')) { renderStockList(); updateChart(); }
-            if(botActive) runBot();
-        }, 1000);
+        // --- COMPANY LOGIC ---
+        // 1. Setup Material Selection
+        let selectedMats = [];
+        let matGrid = document.getElementById('mat-selection');
+        rawMaterials.forEach(m => {
+            let div = document.createElement('div'); div.className='mat-check';
+            div.innerHTML = `<input type="checkbox" onchange="toggleMat('${m.id}')"> ${m.n} (${m.c}€)`;
+            matGrid.appendChild(div);
+        });
 
-        function renderStockList() {
-            let h = "";
-            stocks.forEach(s => {
-                let cls = s.dir === 'up' ? 'row-up' : 'row-down';
-                let col = s.dir === 'up' ? 'var(--green)' : 'var(--red)';
-                h += `<tr onclick="selStock(${s.id})" style="background:${selectedStockId===s.id?'#334155':''}" class="${cls}"><td><b>${s.ticker}</b><br><small>${s.name}</small></td><td style="color:${col}">${s.price.toFixed(2)}</td><td>${s.owned}</td></tr>`;
-            });
-            document.getElementById('stock-list').innerHTML = h;
-        }
-        function selStock(id) { selectedStockId=id; updateChart(); }
-        function updateChart() {
-            let s = stocks[selectedStockId];
-            document.getElementById('st-name').innerText = s.name;
-            document.getElementById('st-price').innerText = s.price.toFixed(2)+" €";
-            chart.data.datasets[0].data = s.hist;
-            chart.data.datasets[0].borderColor = s.hack.active ? '#eab308' : '#38bdf8';
-            chart.update('none');
-        }
-        function trade(t) {
-            let qty = parseInt(document.getElementById('st-qty').value)||1;
-            let s = stocks[selectedStockId];
-            if(t==='buy' && cash>=s.price*qty) { cash-=s.price*qty; s.owned+=qty; }
-            if(t==='sell' && s.owned>=qty) { cash+=s.price*qty; s.owned-=qty; }
-            ui();
-        }
-        function toggleBot() { botActive=!botActive; document.getElementById('btn-bot').classList.toggle('bot-active'); }
-        function runBot() {
-            stocks.forEach(s => {
-                let avg = s.hist.reduce((a,b)=>a+b,0)/50;
-                if(s.price < avg*0.98 && cash>s.price) { cash-=s.price; s.owned++; }
-                else if(s.price > avg*1.02 && s.owned>0) { cash+=s.price; s.owned--; }
-            });
-            ui();
-        }
-        function startHack() {
-            let t = parseFloat(document.getElementById('hack-target').value);
-            let d = parseFloat(document.getElementById('hack-time').value);
-            if(t && d) { stocks[selectedStockId].hack = {active:true, start:stocks[selectedStockId].price, target:t, dur:d, tick:0}; notify("Hack gestartet!", "bad"); }
+        function toggleMat(id) {
+            if(selectedMats.includes(id)) selectedMats = selectedMats.filter(x=>x!==id);
+            else selectedMats.push(id);
+            calcEstimate();
         }
 
-        // --- COMPANY SYSTEM ---
+        function calcEstimate() {
+            let cost = 0;
+            selectedMats.forEach(id => cost += rawMaterials.find(x=>x.id===id).c);
+            document.getElementById('calc-cost').innerText = fmt(cost);
+            document.getElementById('calc-price').innerText = fmt(cost * 2.5); // 2.5x Marge
+            return cost;
+        }
+
         function foundCompany() {
-            let n = document.getElementById('comp-name').value;
-            let t = document.getElementById('comp-type').value;
-            if(!n) return alert("Name fehlt");
-            if(cash<25000) return alert("Geld fehlt");
-            cash-=25000;
-            myCompany = { name:n, type:t, employees:0, stock:0, progress:0 };
-            document.getElementById('company-create').style.display='none';
-            document.getElementById('company-dash').style.display='block';
-            document.getElementById('dash-title').innerText = n.toUpperCase();
+            let name = document.getElementById('c-name').value;
+            let prod = document.getElementById('c-prod').value;
+            let costPerUnit = calcEstimate();
             
-            if(t==='prod') { document.getElementById('action-title').innerText="Fabrik"; document.getElementById('action-desc').innerText="Material -> Produkte"; }
-            else { document.getElementById('action-title').innerText="Verkauf"; document.getElementById('action-desc').innerText="Ware -> Kunden"; }
+            if(!name || !prod || selectedMats.length===0) return alert("Bitte alle Felder ausfüllen!");
+            if(cash < 50000) return alert("Zu wenig Geld!");
             
+            cash -= 50000;
+            
+            company = {
+                name: name, product: prod,
+                cost: costPerUnit, price: costPerUnit * 2.5,
+                raw: 0, fin: 0,
+                staff: { buy:0, make:0, sell:0 },
+                progress: 0
+            };
+
+            document.getElementById('comp-create').style.display='none';
+            document.getElementById('comp-dash').style.display='block';
+            document.getElementById('dash-header').innerText = name;
             ui();
+        }
+
+        // 2. Operations
+        function hire(role) { if(cash>=500){cash-=500; company.staff[role]++; ui();} }
+        function fire(role) { if(company.staff[role]>0){company.staff[role]--; ui();} }
+
+        function updateCompUI() {
+            document.getElementById('stock-raw').innerText = company.raw;
+            document.getElementById('stock-fin').innerText = company.fin;
+            document.getElementById('count-buy').innerText = company.staff.buy;
+            document.getElementById('count-make').innerText = company.staff.make;
+            document.getElementById('count-sell').innerText = company.staff.sell;
             
-            // Company Loop
-            setInterval(() => {
-                if(myCompany.employees > 0) {
-                    // Auto Work
-                    myCompany.progress += myCompany.employees * 2;
-                    if(myCompany.progress >= 100) {
-                        myCompany.progress = 0;
-                        myCompany.stock += 1; // Produziert 1 Einheit
-                    }
-                    if(document.getElementById('tab-company').classList.contains('active')) {
-                        document.getElementById('prod-bar').style.width = myCompany.progress+"%";
-                        updateCompanyUI();
+            let wages = (company.staff.buy + company.staff.make + company.staff.sell) * 50;
+            document.getElementById('wage-cost').innerText = `-${wages}`;
+        }
+
+        // GAME LOOP (100ms)
+        setInterval(() => {
+            if(!company) return;
+
+            // 1. EINKAUFER (Buy Raw)
+            if(company.staff.buy > 0) {
+                // Kaufen wenn weniger als 50 Rohstoffe pro Mitarbeiter da sind
+                if(company.raw < company.staff.buy * 50) {
+                    let buyCost = company.cost; 
+                    // Rabatt: Je mehr Einkäufer, desto billiger (max 20%)
+                    let discount = Math.min(0.2, company.staff.buy * 0.01); 
+                    buyCost = buyCost * (1 - discount);
+
+                    if(cash >= buyCost) {
+                        cash -= buyCost;
+                        company.raw++;
+                        if(Math.random()<0.1) log(`Einkauf: +1 Material (${fmt(buyCost)})`);
                     }
                 }
-            }, 500); // Fast tick
+            }
 
-            // Wages Loop (30s)
-            setInterval(() => {
-                if(myCompany.employees > 0) {
-                    let cost = myCompany.employees * 50; // 50€ pro MA
+            // 2. PRODUZENTEN (Make Product)
+            if(company.staff.make > 0 && company.raw > 0) {
+                let speed = company.staff.make * 2; // Speed multiplier
+                company.progress += speed;
+                
+                if(company.progress >= 100) {
+                    company.progress = 0;
+                    company.raw--;
+                    company.fin++;
+                    log(`Fertigung: 1 ${company.product} fertig!`);
+                }
+            }
+            document.getElementById('prog-bar').style.width = Math.min(100, company.progress) + "%";
+
+            // 3. VERKÄUFER (Sell Product)
+            if(company.staff.sell > 0 && company.fin > 0) {
+                // Verkaufschance erhöht durch Anzahl Verkäufer
+                if(Math.random() < (company.staff.sell * 0.05)) {
+                    let sellPrice = company.price;
+                    // Bonus: Gute Verkäufer holen mehr raus
+                    sellPrice += (company.staff.sell * 2);
+                    
+                    company.fin--;
+                    cash += sellPrice;
+                    log(`Verkauf: +${fmt(sellPrice)}`);
+                }
+            }
+
+            ui();
+        }, 100);
+
+        // Wages Interval (30s)
+        setInterval(() => {
+            if(company) {
+                let totalStaff = company.staff.buy + company.staff.make + company.staff.sell;
+                if(totalStaff > 0) {
+                    let cost = totalStaff * 50;
                     if(cash >= cost) {
                         cash -= cost;
-                        notify(`Gehälter bezahlt: -${cost}€`);
+                        log(`Lohnzahlung: -${fmt(cost)}`);
                     } else {
-                        notify("Streik! Kein Geld für Gehälter!", "bad");
-                        myCompany.employees = 0; // Alle gehen
+                        log("STREIK! Keine Gehälter bezahlt!");
+                        company.staff.buy = 0; company.staff.make = 0; company.staff.sell = 0;
                     }
-                    ui();
-                }
-            }, 30000);
-        }
-
-        function hireEmp() { if(cash>=500) { cash-=500; myCompany.employees++; ui(); } else notify("Zu wenig Geld"); }
-        function fireEmp() { if(myCompany.employees>0) { myCompany.employees--; ui(); } }
-        function compAction(type) {
-            if(type==='buy') {
-                if(cash>=200) { cash-=200; myCompany.stock+=5; notify("Material gekauft"); ui(); }
-            } else {
-                if(myCompany.stock>0) { 
-                    let val = myCompany.stock * (myCompany.type==='prod' ? 80 : 60); // Verkaufspreis
-                    cash+=val; myCompany.stock=0; notify(`Verkauft für ${fmt(val)}`); ui(); 
                 }
             }
-        }
-        function updateCompanyUI() {
-            document.getElementById('comp-emp').innerText = myCompany.employees;
-            document.getElementById('comp-stock').innerText = myCompany.stock;
-            document.getElementById('comp-wages').innerText = `-${myCompany.employees*50} € / 30s`;
-        }
+        }, 30000);
 
-        // --- ESTATE ---
-        let negIdx=0;
-        function renderEstate() {
-            let b = document.getElementById('estate-list'); b.innerHTML="";
-            propDB.forEach((p,i) => b.innerHTML+=`<div class="item-card"><div style="font-size:3em;float:right;opacity:0.2">${p.i}</div><h3>${p.n}</h3><p>Markt: ${p.m}€</p><button class="btn btn-green" onclick="buyProp(${i})">Kaufen ${fmt(p.c)}</button></div>`);
-            let m = document.getElementById('my-estate-list'); m.innerHTML="";
-            myProps.forEach((p,i) => {
-                let st = p.tenant ? `<span class="status-badge st-rented">Miete: ${p.rent}€</span>` : `<button class="btn" onclick="openNeg(${i})">Mieter suchen</button>`;
-                m.innerHTML+=`<div class="item-card"><h3>${p.n}</h3>${st}</div>`;
-            });
-        }
-        function buyProp(i) { if(cash>=propDB[i].c) { cash-=propDB[i].c; myProps.push({...propDB[i], tenant:false, rent:0}); ui(); renderEstate(); } }
-        function openNeg(i) { negIdx=i; document.getElementById('neg-market').innerText=myProps[i].m; document.getElementById('modal-neg').style.display='flex'; }
-        function submitRent() {
-            let offer = parseInt(document.getElementById('neg-input').value);
-            let p = myProps[negIdx];
-            if(Math.random() < (p.m/offer)) { p.tenant=true; p.rent=offer; notify("Vermietet!"); closeModals(); renderEstate(); }
-            else notify("Mieter lehnt ab", "bad");
-        }
-        // Rent Loop
+
+        // --- STOCKS ---
+        stockNames.forEach((n,i)=>stocks.push({id:i, name:n, price:Math.random()*200+50, hist:Array(40).fill(0), owned:0}));
+        
+        const ctx = document.getElementById('chart').getContext('2d');
+        const chart = new Chart(ctx, {type:'line', data:{labels:Array(40).fill(''), datasets:[{data:[], borderColor:'#38bdf8', borderWidth:2, pointRadius:0, tension:0.1, fill:true, backgroundColor:'rgba(56,189,248,0.1)'}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:false}, scales:{x:{display:false}, y:{grid:{color:'#334155'}}}}});
+
         setInterval(() => {
-            let inc=0; myProps.forEach(p=>{ if(p.tenant) { if(p.t==='com' && Math.random()<0.05) notify(`Raub in ${p.n}!`, "bad"); else inc+=p.rent; } });
-            if(inc>0) { cash+=inc; notify(`Miete: +${fmt(inc)}`); ui(); }
-        }, 15000);
-
-        // --- JOBS ---
-        let jobP = [0,0];
-        function workJob(id) {
-            let i=id-1; jobP[i]+=10;
-            document.getElementById(`job-${id}-bar`).style.width=jobP[i]+"%";
-            if(jobP[i]>=100) { jobP[i]=0; let w=id===1?100:500; cash+=w; notify(`Verdienst: +${w}€`); ui(); document.getElementById(`job-${id}-bar`).style.width="0%"; }
+            stocks.forEach(s => {
+                s.price += (Math.random()-0.5)*5; if(s.price<1)s.price=1;
+                s.hist.shift(); s.hist.push(s.price);
+            });
+            if(document.getElementById('view-stocks').classList.contains('active')) {
+                let h="";
+                stocks.forEach(s=>h+=`<tr onclick="selStock(${s.id})"><td><b>${s.name.substring(0,4).toUpperCase()}</b></td><td>${s.price.toFixed(2)}</td></tr>`);
+                document.getElementById('stock-list').innerHTML=h;
+                updateChart();
+            }
+        }, 1000);
+        let selStockId=0;
+        function selStock(id){selStockId=id;updateChart();}
+        function updateChart(){
+            let s=stocks[selStockId];
+            document.getElementById('st-name').innerText=s.name;
+            document.getElementById('st-price').innerText=s.price.toFixed(2)+"€";
+            chart.data.datasets[0].data=s.hist; chart.update('none');
         }
-
-        // --- LOOT ---
-        function buyLoot(c) {
-            if(cash<c) return; cash-=c;
-            let n = Math.floor(Math.random()*4);
-            let h = "";
-            for(let i=0;i<n;i++) { let it=itemDB[Math.floor(Math.random()*itemDB.length)]; inventory.push(it); h+=`<div class="item-card" style="width:80px"><h1>${it.i}</h1><small>${it.v}€</small></div>`; }
-            document.getElementById('loot-content').innerHTML = h||"<h3>LEER!</h3>";
-            document.getElementById('modal-loot').style.display='flex';
+        function resizeChart(){setTimeout(()=>chart.resize(),100);}
+        function tradeStock(t){
+            let s=stocks[selStockId];
+            if(t==='buy'&&cash>=s.price){cash-=s.price; s.owned++;}
+            if(t==='sell'&&s.owned>0){cash+=s.price; s.owned--;}
             ui();
         }
-        function renderInv() {
-            let d = document.getElementById('inv-list'); d.innerHTML="";
-            inventory.forEach((it,i)=>d.innerHTML+=`<div class="item-card" onclick="sellItem(${i})"><h1>${it.i}</h1><p>${it.n}</p><small style="color:var(--green)">${it.v}€</small></div>`);
-            document.getElementById('inv-count').innerText=inventory.length;
+
+        // --- ESTATE (Simplified) ---
+        const props = [{n:"Kiosk",c:15000,i:500},{n:"Supermarkt",c:100000,i:5000}];
+        function initEstate(){
+            let d=document.getElementById('estate-list');
+            props.forEach(p=>d.innerHTML+=`<div style="background:var(--panel);padding:15px;border-radius:10px;border:1px solid var(--border)"><h3>${p.n}</h3><p>Miete: ${p.i}€</p><button class="btn btn-green" onclick="buyProp(${p.c},${p.i})">Kaufen ${fmt(p.c)}</button></div>`);
         }
-        function sellItem(i) { cash+=inventory[i].v; inventory.splice(i,1); ui(); }
-        function sellAllLoot() { let t=0; inventory.forEach(i=>t+=i.v); cash+=t; inventory=[]; ui(); notify(`Alles verkauft: +${fmt(t)}`); }
+        function buyProp(c,i){if(cash>=c){cash-=c; setInterval(()=>{cash+=i;notify(`Miete +${i}€`);ui()},15000); notify("Gekauft!"); ui();}}
 
         // --- CASINO ---
-        function spinRoulette(c) {
-            let b=parseInt(document.getElementById('r-bet').value); if(!b||cash<b)return; cash-=b;
-            let el=document.getElementById('r-wheel'); el.style.transform="rotate(720deg)";
-            setTimeout(()=>{ el.style.transform="rotate(0deg)"; let w=Math.random()>0.5; if(w){cash+=b*2;notify("Gewonnen!");}else notify("Verloren","bad"); ui(); },1000);
-        }
-        const sl=["🍒","🍋","7️⃣"];
-        function spinSlots() {
-            if(cash<100)return; cash-=100;
-            let r1=sl[Math.floor(Math.random()*3)], r2=sl[Math.floor(Math.random()*3)], r3=sl[Math.floor(Math.random()*3)];
-            document.getElementById('s1').innerText=r1; document.getElementById('s2').innerText=r2; document.getElementById('s3').innerText=r3;
-            if(r1===r2&&r2===r3) { let w=r1==="7️⃣"?5000:500; cash+=w; notify(`WIN ${w}€`); } ui();
-        }
+        function spin(){let b=parseInt(document.getElementById('bet').value);if(b&&cash>=b){cash-=b;if(Math.random()>0.5){cash+=b*2;notify("Gewonnen!");}else notify("Verloren");ui();}}
 
         // Init
+        initEstate();
         ui();
     </script>
 </body>
