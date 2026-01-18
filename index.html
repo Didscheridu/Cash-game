@@ -3,406 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wall Street: Market Manipulator</title>
+    <title>Business Imperium: Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-main: #121212;
-            --bg-secondary: #1e1e1e;
-            --text-main: #e0e0e0;
-            --text-muted: #888;
-            --accent-green: #00e676;
-            --accent-red: #ff5252;
-            --accent-blue: #2979ff;
-            --accent-gold: #ffd700;
+            --bg-dark: #121212;
+            --bg-panel: #1e1e1e;
+            --accent: #FFD700; /* Gold */
+            --green: #00e676;
+            --red: #ff5252;
+            --blue: #2979ff;
         }
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
             margin: 0;
-            padding: 20px;
-            height: 100vh;
-            box-sizing: border-box;
-            overflow: hidden;
+            padding: 0;
+            text-align: center;
         }
 
-        .app-wrapper {
-            display: grid;
-            grid-template-rows: auto 1fr;
-            height: 100%;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .dashboard-header {
-            background-color: var(--bg-secondary);
-            padding: 15px 30px;
-            border-radius: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #333;
-        }
-        .cash-display { font-size: 2em; color: var(--accent-green); font-weight: bold; }
-        .portfolio-val { color: var(--text-muted); }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            overflow: hidden;
-        }
-
-        .market-list-panel {
-            background-color: var(--bg-secondary);
-            border-radius: 12px;
-            border: 1px solid #333;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        
-        .stock-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
-        .stock-table th { text-align: left; position: sticky; top: 0; background: var(--bg-secondary); padding: 10px; color: var(--text-muted); z-index: 10;}
-        .stock-table td { padding: 8px; border-bottom: 1px solid #333; cursor: pointer;}
-        .stock-table tr:hover { background-color: #2a2a2a; }
-        .stock-name { font-weight: bold; color: var(--accent-blue); }
-        .price-up { color: var(--accent-green); }
-        .price-down { color: var(--accent-red); }
-        .price-boost { color: var(--accent-gold); font-weight: bold; text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
-
-        .chart-panel {
-            background-color: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #333;
+        /* --- HAUPTMENÜ --- */
+        #mainMenu {
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: radial-gradient(circle, #2c2c2c 0%, #000000 100%);
         }
-        .chart-header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
-        .chart-container { flex-grow: 1; position: relative; }
+        .menu-title { font-size: 4em; margin-bottom: 20px; color: var(--accent); text-transform: uppercase; letter-spacing: 5px; }
+        .menu-cash { font-size: 2em; margin-bottom: 50px; color: var(--green); }
         
-        .trade-controls { margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center;}
-        
-        button {
-            padding: 12px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9em; transition: 0.2s; color: white;
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1000px;
+            width: 100%;
+            padding: 20px;
         }
-        button:active { transform: scale(0.98); }
-        .btn-buy { background-color: var(--accent-green); flex-grow: 1; }
-        .btn-sell { background-color: var(--accent-red); flex-grow: 1; }
-        
-        /* Der neue Boost Button */
-        .btn-boost { 
-            background: linear-gradient(45deg, #FFD700, #FFA500); 
-            color: #000; 
-            flex-grow: 2;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        .menu-card {
+            background: var(--bg-panel);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #333;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
         }
-        .btn-boost:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed;}
+        .menu-card:hover { transform: translateY(-10px); border-color: var(--accent); }
+        .card-icon { font-size: 4em; display: block; margin-bottom: 20px; }
+        .card-title { font-size: 1.5em; font-weight: bold; }
+        .card-desc { color: #888; margin-top: 10px; }
 
-        input[type=number] { padding: 10px; border-radius: 6px; border: 1px solid #444; background: #333; color: white; width: 80px; text-align: center; font-size: 1em;}
+        /* --- GAME VIEWS ALLGEMEIN --- */
+        .game-view { display: none; height: 100vh; box-sizing: border-box; padding: 20px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; }
+        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .back-btn:hover { background: #777; }
 
-        #noSelectionPlaceholder {
-            display: flex; justify-content: center; align-items: center; height: 100%; color: var(--text-muted); font-size: 1.2em;
+        /* --- STYLES FÜR AKTIEN (Aus v5) --- */
+        .stock-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 85vh; }
+        .stock-list { overflow-y: auto; background: var(--bg-panel); padding: 10px; border-radius: 10px; }
+        .stock-chart { background: var(--bg-panel); padding: 20px; border-radius: 10px; display: flex; flex-direction: column; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
+        tr:hover { background: #333; cursor: pointer; }
+        .up { color: var(--green); } .down { color: var(--red); } .boost { color: var(--accent); }
+
+        /* --- STYLES FÜR CASINO --- */
+        .casino-center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
+        .roulette-wheel { 
+            width: 200px; height: 200px; border-radius: 50%; border: 10px solid #fff; 
+            margin: 30px; display: flex; align-items: center; justify-content: center; font-size: 3em; font-weight: bold;
+            background: #333; transition: transform 0.5s;
         }
-        #selectedStockView { display: none; height: 100%; flex-direction: column; }
+        .bet-btn { padding: 15px 30px; margin: 10px; font-size: 1.2em; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-red { background: var(--red); }
+        .btn-black { background: #333; border: 1px solid white; }
+        .btn-green { background: var(--green); }
+
+        /* --- STYLES FÜR TYCOON (IMMOBILIEN) --- */
+        .tycoon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .building-card { background: var(--bg-panel); padding: 20px; border-radius: 10px; text-align: left; border: 1px solid #444; position: relative; overflow: hidden; }
+        .building-img { font-size: 3em; float: right; opacity: 0.3; }
+        .income-tag { color: var(--green); font-weight: bold; }
+        .buy-btn { width: 100%; padding: 10px; margin-top: 10px; background: var(--blue); color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .buy-btn:disabled { background: #444; cursor: not-allowed; }
+
     </style>
 </head>
 <body>
 
-<div class="app-wrapper">
-    <div class="dashboard-header">
-        <div><h1>Wall Street Manipulator</h1></div>
-        <div style="text-align: right;">
-            <div>Bargeld: <span class="cash-display" id="cashDisplay">10.000 €</span></div>
-            <div class="portfolio-val">Portfolio Wert: <span id="portfolioValue">0 €</span></div>
+    <div id="mainMenu">
+        <div class="menu-title">Business Imperium</div>
+        <div class="menu-cash">Kontostand: <span id="menuCashDisplay">10.000 €</span></div>
+        
+        <div class="menu-grid">
+            <div class="menu-card" onclick="openGame('stocks')">
+                <span class="card-icon">📈</span>
+                <div class="card-title">Wall Street</div>
+                <div class="card-desc">Handel mit volatilen Aktien. Hohes Risiko, Charts und Marktmanipulation.</div>
+            </div>
+
+            <div class="menu-card" onclick="openGame('casino')">
+                <span class="card-icon">🎰</span>
+                <div class="card-title">High Roller Casino</div>
+                <div class="card-desc">Roulette & Glücksspiel. Verdopple dein Geld oder verliere alles in Sekunden.</div>
+            </div>
+
+            <div class="menu-card" onclick="openGame('tycoon')">
+                <span class="card-icon">🏨</span>
+                <div class="card-title">Immobilien Mogul</div>
+                <div class="card-desc">Kaufe Gebäude und kassiere Miete. Baue ein Imperium auf, das dir gehört.</div>
+            </div>
         </div>
     </div>
 
-    <div class="main-content">
-        <div class="market-list-panel">
-            <table class="stock-table">
-                <thead>
-                    <tr>
-                        <th>Symbol</th>
-                        <th>Name</th>
-                        <th>Preis</th>
-                        <th>Besitz</th>
-                    </tr>
-                </thead>
-                <tbody id="stockListBody"></tbody>
-            </table>
+    <div id="view-stocks" class="game-view">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
+            <div>Börsen-Wallet: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span></div>
         </div>
-
-        <div class="chart-panel">
-            <div id="noSelectionPlaceholder">
-                <p>👈 Wähle eine Aktie aus der Liste.</p>
+        <div class="stock-layout">
+            <div class="stock-list">
+                <table>
+                    <thead><tr><th>Aktie</th><th>Preis</th><th>Besitz</th></tr></thead>
+                    <tbody id="stockTableBody"></tbody>
+                </table>
             </div>
-
-            <div id="selectedStockView">
-                <div class="chart-header">
-                    <div>
-                        <h2 style="margin:0;" id="chartStockName">Aktien Name</h2>
-                        <h3 style="margin:5px 0;" id="chartStockPrice">0.00 €</h3>
-                    </div>
-                    <div id="boostStatus" style="display:none; color: var(--accent-gold); font-weight:bold; border: 1px solid var(--accent-gold); padding: 5px 10px; border-radius: 4px;">
-                        🚀 BOOST AKTIV
-                    </div>
-                </div>
-                
-                <div class="chart-container">
-                    <canvas id="stockChartCanvas"></canvas>
-                </div>
-
-                <div class="trade-controls">
-                    <input type="number" id="tradeAmount" value="10" min="1">
-                    <button class="btn-buy" onclick="tradeSelected('buy')">KAUFEN</button>
-                    <button class="btn-sell" onclick="tradeSelected('sell')">VERKAUFEN</button>
-                    <button class="btn-boost" id="btnBoost" onclick="activateBoost()">🚀 BOOST (15s)</button>
+            <div class="stock-chart">
+                <h2 id="stockNameDisplay">Wähle eine Aktie</h2>
+                <div style="flex-grow:1; position:relative;"><canvas id="stockChartCanvas"></canvas></div>
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button class="buy-btn" onclick="tradeStock('buy')" style="background:var(--green)">Kaufen</button>
+                    <button class="buy-btn" onclick="tradeStock('sell')" style="background:var(--red)">Verkaufen</button>
+                    <button class="buy-btn" id="boostBtn" onclick="boostStock()" style="background:var(--accent); color:black;">🚀 BOOST (10x)</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // --- KONFIGURATION ---
-    const START_CASH = 10000;
-    const STOCK_COUNT = 100;
-    const TICK_RATE_MS = 1000; 
-    const HISTORY_LENGTH = 60; 
+    <div id="view-casino" class="game-view">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
+            <div>Casino Chips: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span></div>
+        </div>
+        <div class="casino-center">
+            <h1>Roulette: Rot oder Schwarz?</h1>
+            <div id="rouletteWheel" class="roulette-wheel">?</div>
+            <input type="number" id="betAmount" placeholder="Einsatz" style="padding:10px; font-size:1.2em; text-align:center; width:200px; margin-bottom:20px;">
+            <div>
+                <button class="bet-btn btn-red" onclick="spinRoulette('red')">🔴 ROT (x2)</button>
+                <button class="bet-btn btn-black" onclick="spinRoulette('black')">⚫ SCHWARZ (x2)</button>
+                <button class="bet-btn btn-green" onclick="spinRoulette('green')">🟢 GRÜN (x14)</button>
+            </div>
+            <p id="casinoResult" style="margin-top:20px; font-size:1.5em;"></p>
+        </div>
+    </div>
 
-    // --- GLOBALE VARIABLEN ---
-    let cash = START_CASH;
-    let stocks = [];
-    let selectedStockId = null;
-    let stockChart = null; 
+    <div id="view-tycoon" class="game-view">
+        <div class="top-bar">
+            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
+            <div>Immobilien-Konto: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span> | Einkommen: <span id="passiveIncomeDisplay">0 €</span>/sek</div>
+        </div>
+        <div class="tycoon-grid" id="buildingList">
+            </div>
+    </div>
 
-    // --- SETUP ---
-    const prefixes = ["Apex", "Global", "Future", "Tech", "Quant", "Silver", "Blue", "Red", "Alpha", "Omega", "Prime"];
-    const suffixes = ["Systems", "Corp", "Inc", "Solutions", "Technologies", "Group", "Financial", "Energy", "Labs"];
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    <script>
+        // --- GLOBALE VARIABLEN ---
+        let cash = 10000;
+        
+        // Update alle Geldanzeigen auf der Seite
+        function updateCashDisplay() {
+            document.getElementById('menuCashDisplay').innerText = formatMoney(cash);
+            let displays = document.getElementsByClassName('cash-global');
+            for(let d of displays) d.innerText = formatMoney(cash);
+            
+            // Tycoon Buttons checken
+            renderTycoon(); 
+        }
 
-    function generateStockName(id) {
-        let ticker = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)];
-        let name = prefixes[id % prefixes.length] + " " + suffixes[Math.floor(Math.random() * suffixes.length)];
-        return { ticker, name };
-    }
+        function formatMoney(num) {
+            return num.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+        }
 
-    function initGame() {
-        for (let i = 0; i < STOCK_COUNT; i++) {
-            let naming = generateStockName(i);
-            let startPrice = (Math.random() * 200) + 10;
-            let volatility = (Math.random() * 0.025) + 0.005; 
-            if(Math.random() > 0.9) volatility *= 5;
+        // --- NAVIGATION ---
+        function openGame(gameId) {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('view-' + gameId).style.display = 'block';
+            updateCashDisplay();
+        }
 
-            stocks.push({
-                id: i,
-                ticker: naming.ticker,
-                name: naming.name,
-                price: startPrice,
-                owned: 0,
-                volatility: volatility,
-                history: Array(HISTORY_LENGTH).fill(startPrice),
-                lastTrend: 0,
-                // NEU: Boost Timer (0 = inaktiv)
-                boostTimer: 0 
+        function goHome() {
+            document.querySelectorAll('.game-view').forEach(el => el.style.display = 'none');
+            document.getElementById('mainMenu').style.display = 'flex';
+            updateCashDisplay();
+        }
+
+        // ==========================================
+        // SPIEL 1 LOGIK: AKTIEN (Vereinfacht für Übersicht)
+        // ==========================================
+        let stocks = [];
+        let selectedStockId = null;
+        let chartInstance = null;
+
+        // Init Stocks
+        for(let i=0; i<20; i++) {
+            stocks.push({ 
+                id: i, 
+                name: "Firma " + String.fromCharCode(65+i), 
+                price: Math.random()*100+10, 
+                owned: 0, 
+                history: Array(50).fill(0),
+                boost: 0 
             });
         }
 
-        const ctx = document.getElementById('stockChartCanvas').getContext('2d');
-        stockChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(HISTORY_LENGTH).fill(''),
-                datasets: [{
-                    label: 'Kurs',
-                    data: [],
-                    borderColor: '#2979ff',
-                    backgroundColor: 'rgba(41, 121, 255, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    fill: true,
-                    tension: 0.2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false, 
-                scales: {
-                    x: { display: false },
-                    y: { grid: { color: '#333' }, ticks: { color: '#888' } }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
+        function initChart() {
+            const ctx = document.getElementById('stockChartCanvas').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: Array(50).fill(''), datasets: [{ label: 'Kurs', data: [], borderColor: '#00e676', tension: 0.1 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: {legend: {display:false}}, scales: {x:{display:false}} }
+            });
+        }
+        initChart();
 
-        renderStockTable();
-        updatePortfolioValue();
-    }
+        // Markt Simulation Loop
+        setInterval(() => {
+            stocks.forEach(s => {
+                if(s.boost > 0) {
+                    s.price *= 1.1; // 10% pro Tick hoch bei Boost
+                    s.boost--;
+                } else {
+                    let change = (Math.random() - 0.5) * 4; 
+                    s.price += change;
+                    if(s.price < 1) s.price = 1;
+                }
+                s.history.shift();
+                s.history.push(s.price);
+            });
+            renderStocks();
+            if(selectedStockId !== null) updateChart();
+        }, 1000);
 
-    // --- MARKT LOOP ---
-    setInterval(() => {
-        stocks.forEach(stock => {
-            
-            // LOGIK: Normale Bewegung ODER Boost
-            if (stock.boostTimer > 0) {
-                // BOOST LOGIK:
-                // Um Faktor 10 in 15 Schritten zu erreichen: 10^(1/15) ≈ 1.1659
-                stock.price = stock.price * 1.1659;
-                stock.boostTimer--; // Timer runterzählen
-                stock.lastTrend = 2; // 2 steht für "Super Boost Trend"
+        function renderStocks() {
+            let html = '';
+            stocks.forEach(s => {
+                let style = (selectedStockId === s.id) ? 'background:#333' : '';
+                html += `<tr onclick="selectStock(${s.id})" style="${style}"><td>${s.name}</td><td>${formatMoney(s.price)}</td><td>${s.owned}</td></tr>`;
+            });
+            document.getElementById('stockTableBody').innerHTML = html;
+        }
+
+        function selectStock(id) {
+            selectedStockId = id;
+            document.getElementById('stockNameDisplay').innerText = stocks[id].name;
+            updateChart();
+            renderStocks();
+        }
+
+        function updateChart() {
+            let s = stocks[selectedStockId];
+            chartInstance.data.datasets[0].data = s.history;
+            chartInstance.data.datasets[0].borderColor = s.boost > 0 ? '#FFD700' : '#00e676';
+            chartInstance.update();
+        }
+
+        function tradeStock(type) {
+            if(selectedStockId === null) return;
+            let s = stocks[selectedStockId];
+            if(type === 'buy') {
+                if(cash >= s.price) { cash -= s.price; s.owned++; }
             } else {
-                // NORMALE LOGIK:
-                let percentChange = (Math.random() - 0.5) * 2 * stock.volatility;
-                let oldPrice = stock.price;
-                stock.price = stock.price * (1 + percentChange);
-                if(stock.price < 1) stock.price = 1.00 + Math.random();
-                stock.lastTrend = stock.price >= oldPrice ? 1 : -1;
+                if(s.owned > 0) { cash += s.price; s.owned--; }
             }
-
-            stock.history.shift(); 
-            stock.history.push(stock.price);
-        });
-
-        renderStockTable();
-        updatePortfolioValue();
-        if(selectedStockId !== null) {
-            updateChartView(selectedStockId);
+            updateCashDisplay();
+            renderStocks();
         }
 
-    }, TICK_RATE_MS);
-
-
-    // --- FUNKTIONEN ---
-
-    // NEU: Die Boost Funktion
-    function activateBoost() {
-        if (selectedStockId === null) return;
-        
-        let stock = stocks[selectedStockId];
-        
-        if (stock.boostTimer > 0) {
-            alert("Boost läuft bereits!");
-            return;
+        function boostStock() {
+            if(selectedStockId !== null) stocks[selectedStockId].boost = 15; // 15 Ticks Boost
         }
 
-        // Wir setzen den Timer auf 15 Sekunden (Ticks)
-        stock.boostTimer = 15;
-        
-        // Optional: Kleiner Soundeffekt oder Alert
-        // alert(stock.name + " geht zum Mond! 🚀");
-        
-        // UI sofort updaten
-        updateChartView(selectedStockId);
-    }
 
-    function renderStockTable() {
-        const tbody = document.getElementById('stockListBody');
-        let html = '';
-        stocks.forEach(stock => {
-            let priceClass = 'price-down';
-            if (stock.lastTrend === 1) priceClass = 'price-up';
-            if (stock.lastTrend === 2) priceClass = 'price-boost'; // Goldene Farbe bei Boost
+        // ==========================================
+        // SPIEL 2 LOGIK: CASINO (Roulette)
+        // ==========================================
+        function spinRoulette(choice) {
+            let input = document.getElementById('betAmount');
+            let bet = parseInt(input.value);
+            if(!bet || bet <= 0 || bet > cash) { alert("Ungültiger Einsatz!"); return; }
 
-            let selectedClass = stock.id === selectedStockId ? 'style="background-color: #333;"' : '';
+            cash -= bet;
+            updateCashDisplay();
 
-            html += `
-                <tr onclick="selectStock(${stock.id})" ${selectedClass}>
-                    <td class="stock-name">${stock.ticker}</td>
-                    <td>${stock.name}</td>
-                    <td class="${priceClass}">${formatMoney(stock.price)}</td>
-                    <td>${stock.owned}</td>
-                </tr>
-            `;
-        });
-        tbody.innerHTML = html;
-        document.getElementById('cashDisplay').innerText = formatMoney(cash);
-    }
+            let wheel = document.getElementById('rouletteWheel');
+            wheel.style.transform = "rotate(1080deg)"; // Animation Fake
+            wheel.innerText = "🎲";
 
-    function updatePortfolioValue() {
-        let value = 0;
-        stocks.forEach(s => { value += s.price * s.owned; });
-        document.getElementById('portfolioValue').innerText = formatMoney(value + cash);
-    }
+            setTimeout(() => {
+                wheel.style.transform = "rotate(0deg)";
+                let rand = Math.random();
+                let resultColor = 'black';
+                if(rand < 0.05) resultColor = 'green'; // 5% Chance auf Grün
+                else if(rand < 0.525) resultColor = 'red'; // ca 47.5% Rot
 
-    function selectStock(id) {
-        selectedStockId = id;
-        document.getElementById('noSelectionPlaceholder').style.display = 'none';
-        document.getElementById('selectedStockView').style.display = 'flex';
-        updateChartView(id);
-        renderStockTable();
-    }
+                wheel.style.background = resultColor === 'red' ? 'var(--red)' : (resultColor === 'green' ? 'var(--green)' : '#333');
+                wheel.innerText = resultColor === 'red' ? '🔴' : (resultColor === 'green' ? '🟢' : '⚫');
 
-    function updateChartView(id) {
-        const stock = stocks[id];
-        const priceEl = document.getElementById('chartStockPrice');
-        const boostBadge = document.getElementById('boostStatus');
-        const boostBtn = document.getElementById('btnBoost');
+                let win = 0;
+                if(choice === resultColor) {
+                    if(choice === 'green') win = bet * 14;
+                    else win = bet * 2;
+                }
 
-        document.getElementById('chartStockName').innerText = `${stock.name} (${stock.ticker})`;
-        priceEl.innerText = formatMoney(stock.price);
-        
-        // Farben und Status basierend auf Boost
-        if (stock.boostTimer > 0) {
-            priceEl.className = 'price-boost';
-            boostBadge.style.display = 'block';
-            boostBadge.innerText = `🚀 BOOST: ${stock.boostTimer}s`;
-            boostBtn.disabled = true; // Button sperren während Boost läuft
-            
-            // Chart Farbe Gold
-            stockChart.data.datasets[0].borderColor = '#FFD700';
-            stockChart.data.datasets[0].backgroundColor = 'rgba(255, 215, 0, 0.2)';
-        } else {
-            priceEl.className = stock.lastTrend > 0 ? 'price-up' : 'price-down';
-            boostBadge.style.display = 'none';
-            boostBtn.disabled = false;
+                if(win > 0) {
+                    cash += win;
+                    document.getElementById('casinoResult').innerText = "GEWONNEN: " + formatMoney(win);
+                    document.getElementById('casinoResult').style.color = "var(--green)";
+                } else {
+                    document.getElementById('casinoResult').innerText = "VERLOREN";
+                    document.getElementById('casinoResult').style.color = "var(--red)";
+                }
+                updateCashDisplay();
+            }, 1000);
+        }
 
-            // Chart Farbe Grün/Rot
-            if(stock.lastTrend > 0) {
-                 stockChart.data.datasets[0].borderColor = '#00e676';
-                 stockChart.data.datasets[0].backgroundColor = 'rgba(0, 230, 118, 0.1)';
-            } else {
-                 stockChart.data.datasets[0].borderColor = '#ff5252';
-                 stockChart.data.datasets[0].backgroundColor = 'rgba(255, 82, 82, 0.1)';
+
+        // ==========================================
+        // SPIEL 3 LOGIK: TYCOON (Immobilien)
+        // ==========================================
+        let buildings = [
+            { id: 0, name: "Kiosk", cost: 100, income: 1, count: 0, icon: "🏪" },
+            { id: 1, name: "Wohnung", cost: 1500, income: 10, count: 0, icon: "🏠" },
+            { id: 2, name: "Supermarkt", cost: 10000, income: 80, count: 0, icon: "🛒" },
+            { id: 3, name: "Fabrik", cost: 50000, income: 450, count: 0, icon: "🏭" },
+            { id: 4, name: "Wolkenkratzer", cost: 250000, income: 2500, count: 0, icon: "🌇" }
+        ];
+
+        function renderTycoon() {
+            let container = document.getElementById('buildingList');
+            container.innerHTML = "";
+            let totalIncome = 0;
+
+            buildings.forEach(b => {
+                totalIncome += b.count * b.income;
+                let currentCost = Math.floor(b.cost * Math.pow(1.15, b.count)); // Preis steigt um 15% pro Kauf
+
+                let btnDisabled = cash < currentCost ? "disabled" : "";
+
+                let html = `
+                <div class="building-card">
+                    <span class="building-img">${b.icon}</span>
+                    <h3>${b.name}</h3>
+                    <div class="income-tag">+${b.income} € / sek</div>
+                    <div>Besitz: ${b.count}</div>
+                    <button class="buy-btn" onclick="buyBuilding(${b.id})" ${btnDisabled}>
+                        Kaufen (${formatMoney(currentCost)})
+                    </button>
+                </div>`;
+                container.innerHTML += html;
+            });
+            document.getElementById('passiveIncomeDisplay').innerText = totalIncome;
+        }
+
+        function buyBuilding(id) {
+            let b = buildings[id];
+            let currentCost = Math.floor(b.cost * Math.pow(1.15, b.count));
+            if(cash >= currentCost) {
+                cash -= currentCost;
+                b.count++;
+                updateCashDisplay();
+                renderTycoon();
             }
         }
 
-        stockChart.data.datasets[0].data = stock.history;
-        stockChart.update();
-    }
+        // Passives Einkommen Timer (Jede Sekunde)
+        setInterval(() => {
+            let income = 0;
+            buildings.forEach(b => { income += b.count * b.income; });
+            if(income > 0) {
+                cash += income;
+                // Nur UI updaten wenn wir im Tycoon Menü oder Hauptmenü sind, um Performance zu sparen
+                if(document.getElementById('view-tycoon').style.display === 'block' || 
+                   document.getElementById('mainMenu').style.display === 'flex') {
+                    updateCashDisplay();
+                }
+            }
+        }, 1000);
 
-    function tradeSelected(type) {
-        if(selectedStockId === null) return;
-        const stock = stocks[selectedStockId];
-        const amountInput = document.getElementById('tradeAmount');
-        let amount = parseInt(amountInput.value);
+        // Start
+        updateCashDisplay();
 
-        if(isNaN(amount) || amount <= 0) { alert("Menge ungültig"); return; }
-
-        if(type === 'buy') {
-            let cost = stock.price * amount;
-            if(cash >= cost) {
-                cash -= cost;
-                stock.owned += amount;
-            } else { alert("Zu wenig Geld!"); }
-        } else {
-            if(stock.owned >= amount) {
-                cash += stock.price * amount;
-                stock.owned -= amount;
-            } else { alert("Nicht genug Aktien!"); }
-        }
-        updatePortfolioValue();
-        renderStockTable();
-    }
-
-    function formatMoney(number) {
-        return number.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
-    }
-
-    initGame();
-</script>
+    </script>
 </body>
 </html>
