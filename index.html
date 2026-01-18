@@ -3,288 +3,388 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Imperium: Wall Street</title>
+    <title>Wall Street Pro Trader</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --bg-main: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --accent-green: #4caf50;
+            --accent-red: #f44336;
+            --accent-blue: #2196F3;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
-            text-align: center;
-            padding: 20px;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
             margin: 0;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            display: grid;
-            gap: 20px;
-        }
-        
-        /* Dashboard */
-        .dashboard {
-            background-color: #1e1e1e;
             padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #333;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden; /* Verhindert Scrollen des ganzen Body */
         }
-        .cash-display { font-size: 3em; color: #4caf50; font-weight: bold; margin: 5px 0; }
-        .stats { display: flex; justify-content: center; gap: 20px; font-size: 1.1em; color: #aaa; }
 
-        /* Sektionen */
-        .section {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: left;
+        /* Layout Wrapper */
+        .app-wrapper {
+            display: grid;
+            grid-template-rows: auto 1fr; /* Header fest, Rest scrollbar */
+            height: 100%;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background-color: var(--bg-secondary);
+            padding: 15px 30px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             border: 1px solid #333;
         }
-        h2 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; }
+        .cash-display { font-size: 2em; color: var(--accent-green); font-weight: bold; }
+        .portfolio-val { color: var(--text-muted); }
 
-        /* Buttons */
-        button {
-            cursor: pointer;
-            border: none;
-            border-radius: 5px;
-            padding: 8px 12px;
-            font-weight: bold;
-            transition: 0.2s;
+        /* Hauptbereich (Split View) */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Links Tabelle, Rechts Chart */
+            gap: 20px;
+            overflow: hidden; /* Wichtig damit innere Bereiche scrollen */
         }
-        button:active { transform: scale(0.95); }
-        button:disabled { background-color: #444 !important; opacity: 0.5; cursor: not-allowed; }
+
+        /* Linke Seite: Aktien Tabelle */
+        .market-list-panel {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid #333;
+            overflow-y: auto; /* Tabelle scrollbar machen */
+            padding: 10px;
+        }
         
-        .btn-work { background-color: #2196F3; color: white; width: 100%; padding: 15px; font-size: 1.2em; margin-top: 10px; }
-        .btn-buy { background-color: #ff9800; color: white; }
-        .btn-stock-buy { background-color: #4caf50; color: white; margin-left: 5px;}
-        .btn-stock-sell { background-color: #f44336; color: white; margin-left: 5px;}
+        .stock-table { width: 100%; border-collapse: collapse; font-size: 0.9em; }
+        .stock-table th { text-align: left; position: sticky; top: 0; background: var(--bg-secondary); padding: 10px; color: var(--text-muted);}
+        .stock-table td { padding: 8px; border-bottom: 1px solid #333; cursor: pointer;}
+        .stock-table tr:hover { background-color: #2a2a2a; }
+        .stock-name { font-weight: bold; color: var(--accent-blue); }
+        .price-up { color: var(--accent-green); }
+        .price-down { color: var(--accent-red); }
 
-        /* Aktien Tabelle */
-        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .stock-table th { text-align: left; color: #888; padding: 5px; }
-        .stock-table td { padding: 10px 5px; border-bottom: 1px solid #333; }
-        .price-up { color: #4caf50; }
-        .price-down { color: #f44336; }
-
-        /* Grid Layout für Desktop */
-        @media (min-width: 768px) {
-            .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* Rechte Seite: Chart Detail View */
+        .chart-panel {
+            background-color: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
         }
+        .chart-header { margin-bottom: 20px; }
+        .chart-container { flex-grow: 1; position: relative; }
+        
+        /* Aktions Buttons */
+        .trade-controls { margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center;}
+        button {
+            padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1em; transition: 0.2s;
+        }
+        button:active { transform: scale(0.98); }
+        .btn-buy { background-color: var(--accent-green); color: white; flex-grow: 1; }
+        .btn-sell { background-color: var(--accent-red); color: white; flex-grow: 1; }
+        input[type=number] { padding: 10px; border-radius: 6px; border: 1px solid #444; background: #333; color: white; width: 80px; text-align: center; font-size: 1em;}
+
+        /* Wenn keine Aktie ausgewählt ist */
+        #noSelectionPlaceholder {
+            display: flex; justify-content: center; align-items: center; height: 100%; color: var(--text-muted); font-size: 1.2em;
+        }
+        #selectedStockView { display: none; height: 100%; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        
-        <div class="dashboard">
-            <h1>Business Imperium 3.0</h1>
-            <div class="cash-display" id="cashDisplay">1.000 €</div>
-            <div class="stats">
-                <span>🖱️ Klick: <b id="clickValue">10</b> €</span>
-                <span>📈 Passiv: <b id="passiveValue">0</b> €/s</span>
-            </div>
-            <button class="btn-work" onclick="work()">Geld verdienen</button>
+<div class="app-wrapper">
+    <div class="dashboard-header">
+        <div>
+            <h1>Pro Trader Terminal</h1>
         </div>
-
-        <div class="game-grid">
-            
-            <div class="section">
-                <h2 style="color: #2196F3;">📈 Live Börse</h2>
-                <p><small>Preise aktualisieren sich alle 3 Sekunden.</small></p>
-                
-                <table class="stock-table">
-                    <thead>
-                        <tr>
-                            <th>Aktie</th>
-                            <th>Preis</th>
-                            <th>Besitz</th>
-                            <th>Aktion</th>
-                        </tr>
-                    </thead>
-                    <tbody id="stockList">
-                        </tbody>
-                </table>
-            </div>
-
-            <div class="section">
-                <h2 style="color: #ff9800;">🏭 Firmen-Upgrades</h2>
-                
-                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>Zeitungsstand</strong><br>
-                        <small>+5 € / Sekunde</small>
-                    </div>
-                    <button class="btn-buy" id="buyPassive1" onclick="buyPassive(500, 5)">Kaufen (500 €)</button>
-                </div>
-
-                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>Pizza-Service</strong><br>
-                        <small>+25 € / Sekunde</small>
-                    </div>
-                    <button class="btn-buy" id="buyPassive2" onclick="buyPassive(2000, 25)">Kaufen (2k €)</button>
-                </div>
-
-                 <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>Tech Startup</strong><br>
-                        <small>+150 € / Sekunde</small>
-                    </div>
-                    <button class="btn-buy" id="buyPassive3" onclick="buyPassive(10000, 150)">Kaufen (10k €)</button>
-                </div>
-            </div>
-
+        <div style="text-align: right;">
+            <div>Bargeld: <span class="cash-display" id="cashDisplay">10.000 €</span></div>
+            <div class="portfolio-val">Portfolio Wert: <span id="portfolioValue">0 €</span></div>
         </div>
-        
-        <div class="section" style="border-color: #e91e63;">
-            <h2 style="color: #e91e63;">🎰 Schnelles Glück</h2>
-            <button onclick="gamble(100)" style="background:#333; color:#fff;">100 € setzen (50% Chance)</button>
-            <button onclick="gamble(1000)" style="background:#333; color:#fff;">1.000 € setzen</button>
-        </div>
-
     </div>
 
-    <script>
-        // --- GRUNDWERTE ---
-        let cash = 1000;
-        let incomePerClick = 10;
-        let incomePerSecond = 0;
-
-        // --- AKTIEN SYSTEM ---
-        // Wir definieren Aktien mit Namen, aktuellem Preis und Volatilität (wie stark sie schwanken)
-        let stocks = [
-            { id: 0, name: "Apple (AAPL)", price: 175.50, owned: 0, volatility: 2.5 },
-            { id: 1, name: "Tesla (TSLA)", price: 240.00, owned: 0, volatility: 5.0 }, // Tesla schwankt stärker
-            { id: 2, name: "Bitcoin (BTC)", price: 35000.00, owned: 0, volatility: 1200.0 } // Bitcoin schwankt extrem
-        ];
-
-        // --- CORE LOOP ---
-        
-        // 1. Passives Einkommen (jede Sekunde)
-        setInterval(() => {
-            if(incomePerSecond > 0) {
-                cash += incomePerSecond;
-                updateUI(); // UI nur updaten, aber Börse nicht
-            }
-        }, 1000);
-
-        // 2. Börsen-Ticker (alle 3 Sekunden)
-        setInterval(() => {
-            fluctuateMarket();
-        }, 3000);
-
-        // --- FUNKTIONEN ---
-
-        function work() {
-            cash += incomePerClick;
-            updateUI();
-        }
-
-        // Markt simulieren
-        function fluctuateMarket() {
-            stocks.forEach(stock => {
-                // Zufällige Änderung: Positiv oder Negativ
-                let change = (Math.random() - 0.5) * stock.volatility * 2; 
-                stock.price += change;
-                
-                // Preis darf nicht unter 1€ fallen
-                if(stock.price < 1) stock.price = 1;
-            });
-            renderStocks();
-        }
-
-        function buyStock(id) {
-            let stock = stocks[id];
-            if(cash >= stock.price) {
-                cash -= stock.price;
-                stock.owned++;
-                updateUI();
-                renderStocks();
-            } else {
-                alert("Nicht genug Geld für diese Aktie!");
-            }
-        }
-
-        function sellStock(id) {
-            let stock = stocks[id];
-            if(stock.owned > 0) {
-                cash += stock.price;
-                stock.owned--;
-                updateUI();
-                renderStocks();
-            } else {
-                alert("Du besitzt diese Aktie nicht!");
-            }
-        }
-
-        // Aktien Tabelle zeichnen
-        function renderStocks() {
-            const list = document.getElementById('stockList');
-            list.innerHTML = ""; // Liste leeren
-
-            stocks.forEach(stock => {
-                let priceClass = "price-up"; // Hier könnte man Logik für rot/grün einbauen
-
-                let html = `
+    <div class="main-content">
+        <div class="market-list-panel">
+            <table class="stock-table">
+                <thead>
                     <tr>
-                        <td><strong>${stock.name}</strong></td>
-                        <td class="${priceClass}">${stock.price.toFixed(2)} €</td>
-                        <td>${stock.owned} Stk.</td>
-                        <td>
-                            <button class="btn-stock-buy" onclick="buyStock(${stock.id})">K</button>
-                            <button class="btn-stock-sell" onclick="sellStock(${stock.id})">V</button>
-                        </td>
+                        <th>Symbol</th>
+                        <th>Name</th>
+                        <th>Preis</th>
+                        <th>Besitz</th>
                     </tr>
-                `;
-                list.innerHTML += html;
+                </thead>
+                <tbody id="stockListBody">
+                    </tbody>
+            </table>
+        </div>
+
+        <div class="chart-panel">
+            
+            <div id="noSelectionPlaceholder">
+                <p>👈 Wähle eine Aktie aus der Liste, um den Chart zu sehen.</p>
+            </div>
+
+            <div id="selectedStockView">
+                <div class="chart-header">
+                    <h2 style="margin:0;" id="chartStockName">Aktien Name</h2>
+                    <h3 style="margin:5px 0;" id="chartStockPrice">0.00 €</h3>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="stockChartCanvas"></canvas>
+                </div>
+
+                <div class="trade-controls">
+                    <input type="number" id="tradeAmount" value="1" min="1"> Stk.
+                    <button class="btn-buy" onclick="tradeSelected('buy')">KAUFEN</button>
+                    <button class="btn-sell" onclick="tradeSelected('sell')">VERKAUFEN</button>
+                </div>
+                 <p style="text-align: center; color: #666; font-size: 0.9em;">Tipp: Klicke in der Tabelle auf eine Aktie, um sie hier zu handeln.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- KONFIGURATION ---
+    const START_CASH = 10000;
+    const STOCK_COUNT = 100;
+    const TICK_RATE_MS = 1000; // Markt aktualisiert sich jede Sekunde
+    const HISTORY_LENGTH = 60; // Chart zeigt die letzten 60 Sekunden
+
+    // --- GLOBALE VARIABLEN ---
+    let cash = START_CASH;
+    let stocks = [];
+    let selectedStockId = null;
+    let stockChart = null; // Chart.js Instanz
+
+    // --- NAMENS-GENERATOR ---
+    const prefixes = ["Apex", "Global", "Future", "Tech", "Quant", "Silver", "Blue", "Red", "Alpha", "Omega", "Dynamic", "Prime"];
+    const suffixes = ["Systems", "Corp", "Inc", "Solutions", "Dynamics", "Technologies", "Group", "Holdings", "Financial", "Energy"];
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    function generateStockName(id) {
+        let ticker = letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)] + letters[Math.floor(Math.random() * 26)];
+        let name = prefixes[id % prefixes.length] + " " + suffixes[Math.floor(Math.random() * suffixes.length)];
+        // Ein paar spezielle Namen einstreuen
+        if(id === 0) { ticker = "GOOG"; name = "Alphabet Inc."; }
+        if(id === 1) { ticker = "TSLA"; name = "Tesla Motors"; }
+        if(id === 42) { ticker = "BTC"; name = "Bitcoin Tracker"; }
+
+        return { ticker, name };
+    }
+
+    // --- INITIALISIERUNG ---
+    function initGame() {
+        // 1. Aktien generieren
+        for (let i = 0; i < STOCK_COUNT; i++) {
+            let naming = generateStockName(i);
+            let startPrice = (Math.random() * 200) + 10; // Preis zwischen 10 und 210
+            // Volatilität: Wie stark schwankt sie? (Zufall zwischen 0.5% und 3%)
+            let volatility = (Math.random() * 0.025) + 0.005; 
+            // Manche Aktien sind viel volatiler (z.B. Krypto-ähnlich)
+            if(Math.random() > 0.9) volatility *= 5;
+
+            stocks.push({
+                id: i,
+                ticker: naming.ticker,
+                name: naming.name,
+                price: startPrice,
+                owned: 0,
+                volatility: volatility,
+                history: Array(HISTORY_LENGTH).fill(startPrice), // Verlauf initial füllen
+                lastTrend: 0 // 1 für hoch, -1 für runter
             });
         }
 
-        // Shop System
-        function buyPassive(cost, incomeAdd) {
-            if (cash >= cost) {
+        // 2. Chart.js initialisieren (leer)
+        const ctx = document.getElementById('stockChartCanvas').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array(HISTORY_LENGTH).fill(''), // Leere Labels für X-Achse
+                datasets: [{
+                    label: 'Kursverlauf',
+                    data: [],
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0, // Keine Punkte auf der Linie
+                    fill: true,
+                    tension: 0.1 // Leichte Kurve
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false, // Animation aus für Performance
+                scales: {
+                    x: { display: false }, // X-Achse ausblenden
+                    y: {
+                        grid: { color: '#333' },
+                        ticks: { color: '#888' }
+                    }
+                },
+                plugins: { legend: { display: false } } // Legende ausblenden
+            }
+        });
+
+        // 3. UI erstes Mal rendern
+        updatePortfolioValue();
+        renderStockTable();
+    }
+
+    // --- MARKT SIMULATION (CORE LOOP) ---
+    setInterval(() => {
+        // Für JEDE der 100 Aktien
+        stocks.forEach(stock => {
+            // Zufällige Bewegung basierend auf Volatilität
+            // Math.random()-0.5 ergibt Zahl zwischen -0.5 und 0.5. 
+            let percentChange = (Math.random() - 0.5) * 2 * stock.volatility;
+            
+            let oldPrice = stock.price;
+            stock.price = stock.price * (1 + percentChange);
+            
+            // Mindestpreis 1€, damit sie nicht 0 oder negativ wird
+            if(stock.price < 1) stock.price = 1.00 + Math.random();
+
+            // Trend speichern für Farbe
+            stock.lastTrend = stock.price >= oldPrice ? 1 : -1;
+
+            // History updaten (Altes raus, Neues rein)
+            stock.history.shift(); 
+            stock.history.push(stock.price);
+        });
+
+        // UI Updates nach dem Markt-Tick
+        renderStockTable();
+        updatePortfolioValue();
+        if(selectedStockId !== null) {
+            updateChartView(selectedStockId);
+        }
+
+    }, TICK_RATE_MS);
+
+
+    // --- UI FUNKTIONEN ---
+
+    // Rendert die Tabelle (nur die Werte aktualisieren wäre performanter, aber so ist es einfacher lesbar)
+    function renderStockTable() {
+        const tbody = document.getElementById('stockListBody');
+        let html = '';
+        stocks.forEach(stock => {
+            let priceClass = stock.lastTrend > 0 ? 'price-up' : 'price-down';
+            // Prüfen ob diese Zeile die ausgewählte ist
+            let selectedClass = stock.id === selectedStockId ? 'style="background-color: #333;"' : '';
+
+            html += `
+                <tr onclick="selectStock(${stock.id})" ${selectedClass}>
+                    <td class="stock-name">${stock.ticker}</td>
+                    <td>${stock.name}</td>
+                    <td class="${priceClass}">${stock.price.toFixed(2)} €</td>
+                    <td>${stock.owned}</td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+        document.getElementById('cashDisplay').innerText = formatMoney(cash);
+    }
+
+    function updatePortfolioValue() {
+        let value = 0;
+        stocks.forEach(s => {
+            value += s.price * s.owned;
+        });
+        document.getElementById('portfolioValue').innerText = formatMoney(value + cash);
+    }
+
+    // Wird aufgerufen, wenn man auf eine Zeile klickt
+    function selectStock(id) {
+        selectedStockId = id;
+        // Platzhalter ausblenden, Chart View einblenden
+        document.getElementById('noSelectionPlaceholder').style.display = 'none';
+        document.getElementById('selectedStockView').style.display = 'flex';
+        // Chart sofort updaten
+        updateChartView(id);
+        renderStockTable(); // Um die Markierung in der Tabelle zu setzen
+    }
+
+    // Aktualisiert den rechten Bereich mit Chart und Daten
+    function updateChartView(id) {
+        const stock = stocks[id];
+        document.getElementById('chartStockName').innerText = `${stock.name} (${stock.ticker})`;
+        document.getElementById('chartStockPrice').innerText = formatMoney(stock.price);
+        document.getElementById('chartStockPrice').className = stock.lastTrend > 0 ? 'price-up' : 'price-down';
+
+        // Chart.js Daten updaten
+        stockChart.data.datasets[0].data = stock.history;
+        // Farbe anpassen je nach aktuellem Trend
+        if(stock.lastTrend > 0) {
+             stockChart.data.datasets[0].borderColor = '#4caf50';
+             stockChart.data.datasets[0].backgroundColor = 'rgba(76, 175, 80, 0.1)';
+        } else {
+             stockChart.data.datasets[0].borderColor = '#f44336';
+             stockChart.data.datasets[0].backgroundColor = 'rgba(244, 67, 54, 0.1)';
+        }
+        stockChart.update();
+    }
+
+    // --- HANDELN ---
+    function tradeSelected(type) {
+        if(selectedStockId === null) return;
+        
+        const stock = stocks[selectedStockId];
+        const amountInput = document.getElementById('tradeAmount');
+        let amount = parseInt(amountInput.value);
+
+        if(isNaN(amount) || amount <= 0) {
+             alert("Bitte gültige Menge eingeben."); return;
+        }
+
+        if(type === 'buy') {
+            let cost = stock.price * amount;
+            if(cash >= cost) {
                 cash -= cost;
-                incomePerSecond += incomeAdd;
-                updateUI();
-                checkButtons();
-            }
-        }
-
-        // Casino Simpel
-        function gamble(amount) {
-            if(cash >= amount) {
-                if(Math.random() > 0.5) {
-                    cash += amount;
-                    alert("Gewonnen!");
-                } else {
-                    cash -= amount;
-                    alert("Verloren!");
-                }
-                updateUI();
+                stock.owned += amount;
             } else {
-                alert("Zu wenig Geld!");
+                alert("Nicht genug Bargeld!");
+            }
+        } 
+        else if (type === 'sell') {
+            if(stock.owned >= amount) {
+                let gain = stock.price * amount;
+                cash += gain;
+                stock.owned -= amount;
+            } else {
+                alert("Du besitzt nicht so viele Aktien!");
             }
         }
+        updatePortfolioValue();
+        renderStockTable();
+    }
 
-        // UI Updates
-        function updateUI() {
-            document.getElementById('cashDisplay').innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) + " €";
-            document.getElementById('clickValue').innerText = incomePerClick;
-            document.getElementById('passiveValue').innerText = incomePerSecond;
-            checkButtons();
-        }
+    // Helfer: Geld formatieren
+    function formatMoney(number) {
+        return number.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+    }
 
-        function checkButtons() {
-            // Hilfsfunktion um Buttons zu grauen (vereinfacht)
-            // Hier könnte man Klassen hinzufügen/entfernen
-        }
+    // Starten!
+    initGame();
 
-        // Init beim Start
-        renderStocks();
-        updateUI();
-
-    </script>
+</script>
 </body>
 </html>
