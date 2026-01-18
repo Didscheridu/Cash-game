@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Imperium: Juicy Edition</title>
+    <title>Business Imperium: Economy Update</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #0a0a0a;
             --bg-panel: #161616;
-            --accent: #FFD700; /* Gold */
+            --accent: #FFD700;
             --green: #00ff88;
             --red: #ff3333;
             --blue: #00ccff;
@@ -22,542 +22,412 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            overflow: hidden; /* Kein Scrollen der Hauptseite */
+            overflow: hidden; 
         }
 
-        /* --- ANIMATIONEN DEFINITIONEN --- */
-        @keyframes fadeInScale {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        /* ANIMATIONEN */
+        @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 80% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        @keyframes shake { 0% { transform: translate(0,0) rotate(0); } 25% { transform: translate(-5px, 5px) rotate(-5deg); } 75% { transform: translate(5px, -5px) rotate(5deg); } 100% { transform: translate(0,0) rotate(0); } }
+
+        /* UI STRUKTUR */
+        .game-view { display: none; height: 100vh; box-sizing: border-box; padding: 20px; max-width: 1200px; margin: 0 auto; overflow-y: auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #333; }
+        .back-btn { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         
-        @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
-        }
+        button { cursor: pointer; transition: 0.2s; border: none; }
+        button:active { transform: scale(0.95); }
 
-        @keyframes pop {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); color: white; text-shadow: 0 0 10px white; }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes flashGreen { 0% { background-color: rgba(0,255,136, 0.5); } 100% { background-color: transparent; } }
-        @keyframes flashRed { 0% { background-color: rgba(255, 51, 51, 0.5); } 100% { background-color: transparent; } }
-
-        /* --- UI ELEMENTE --- */
-        .game-view { 
-            display: none; 
-            height: 100vh; 
-            box-sizing: border-box; 
-            padding: 20px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            animation: fadeInScale 0.3s ease-out; /* View Animation */
-        }
-
-        .cash-pulse { animation: pop 0.3s ease; }
-
-        /* Hauptmenü */
-        #mainMenu {
-            display: flex; flex-direction: column; align-items: center; justify-content: start;
-            height: 100vh; padding: 40px 20px; overflow-y: auto;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
-        }
-        .menu-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; width: 100%; max-width: 1000px;
-        }
-        .menu-card {
-            background: var(--bg-panel); padding: 25px; border-radius: 15px; border: 1px solid #333;
-            cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-        .menu-card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--accent); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
-        
-        /* Top Bar */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; background: #222; padding: 15px 25px; border-radius: 12px; margin-bottom: 20px; border-bottom: 2px solid #333; }
-        .back-btn { background: #444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .back-btn:hover { background: #666; }
-
-        /* --- AKTIEN STYLE --- */
+        /* --- AKTIEN --- */
         .stock-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; height: 80vh; }
         .stock-list-container { overflow-y: auto; background: var(--bg-panel); border-radius: 12px; border: 1px solid #333; }
         table { width: 100%; border-collapse: collapse; }
-        th { position: sticky; top: 0; background: #222; padding: 10px; z-index: 2; text-align: left; color: #888; }
-        td { padding: 12px 10px; border-bottom: 1px solid #222; cursor: pointer; transition: background 0.2s; }
+        th { position: sticky; top: 0; background: #222; padding: 10px; text-align: left; color: #888; z-index: 2; }
+        td { padding: 12px 10px; border-bottom: 1px solid #222; cursor: pointer; }
         tr:hover { background: #333; }
         
-        .flash-g { animation: flashGreen 0.5s; }
-        .flash-r { animation: flashRed 0.5s; }
-        
-        /* Chart Container */
-        .chart-wrapper { background: var(--bg-panel); border-radius: 12px; padding: 20px; border: 1px solid #333; display: flex; flex-direction: column; position: relative; }
-        .buy-sell-row { display: flex; gap: 10px; margin-top: 15px; }
-        .action-btn { flex: 1; padding: 15px; border: none; border-radius: 8px; font-weight: bold; color: #000; cursor: pointer; font-size: 1.1em; transition: transform 0.1s; }
-        .action-btn:active { transform: scale(0.95); }
+        .trade-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .input-qty { width: 100%; padding: 10px; background: #222; border: 1px solid #444; color: white; border-radius: 5px; text-align: center; font-size: 1.2em; box-sizing: border-box;}
+        .btn-action { padding: 15px; font-weight: bold; border-radius: 5px; color: black; font-size: 1em; }
 
-        /* --- AUKTION STYLE --- */
-        .chest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; }
-        .chest-card { 
-            background: linear-gradient(135deg, #2a2a2a, #1a1a1a); padding: 30px; 
-            border-radius: 15px; border: 2px solid #444; cursor: pointer; transition: 0.3s; 
-            display: flex; flex-direction: column; align-items: center;
+        /* --- INVENTAR & AUKTION --- */
+        .chest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .chest-card { background: #222; padding: 20px; border-radius: 15px; border: 2px solid #444; cursor: pointer; text-align: center; }
+        .chest-card:hover { border-color: var(--purple); background: #2a2a2a; }
+        .shaking { animation: shake 0.5s infinite; }
+
+        .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .inv-item { 
+            background: #1a1a1a; padding: 15px; border-radius: 10px; border: 1px solid #333; 
+            text-align: center; animation: popIn 0.3s; position: relative; overflow: hidden;
+            transition: 0.2s; cursor: pointer;
         }
-        .chest-card:hover { border-color: var(--purple); box-shadow: 0 0 15px rgba(213, 0, 249, 0.4); }
-        .chest-icon { font-size: 6em; transition: 0.3s; display: block; }
+        .inv-item:hover { transform: translateY(-5px); border-color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .inv-item:hover::after { content: "Verkaufen"; position: absolute; bottom: 0; left: 0; width: 100%; background: var(--green); color: black; font-weight: bold; font-size: 0.8em; }
         
-        .shaking { animation: shake 0.5s; animation-iteration-count: infinite; }
-        
+        .rarity-common { border-bottom: 3px solid #888; }
+        .rarity-rare { border-bottom: 3px solid var(--blue); }
+        .rarity-legend { border-bottom: 3px solid var(--accent); background: linear-gradient(to bottom, #1a1a1a, #2a2a00); }
+
+        /* POPUP FÜR LOOT */
+        #lootPopup { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); 
+            display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 999; 
+        }
+        .loot-reveal { text-align: center; animation: popIn 0.5s; }
+        .loot-icon { font-size: 8em; animation: float 3s infinite ease-in-out; display: block; margin-bottom: 20px;}
+
         /* --- TYCOON --- */
-        .tycoon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; }
-        .building-card { background: var(--bg-panel); padding: 15px; border-radius: 10px; border: 1px solid #333; transition: 0.2s; }
-        .building-card:hover { border-color: var(--blue); transform: translateY(-3px); }
+        .tycoon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .building-card { background: var(--bg-panel); padding: 15px; border-radius: 10px; border: 1px solid #333; }
+        .progress-bar-bg { width: 100%; height: 10px; background: #333; border-radius: 5px; margin-top: 20px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: var(--green); width: 0%; transition: width 1s linear; }
+
+        /* --- MENU --- */
+        #mainMenu { display: flex; flex-direction: column; align-items: center; height: 100vh; padding-top: 50px; background: radial-gradient(circle, #1a1a1a 0%, #000000 100%); }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 800px; width: 100%; }
+        .menu-card { background: #222; padding: 30px; border-radius: 20px; text-align: center; cursor: pointer; border: 1px solid #333; transition: 0.3s; }
+        .menu-card:hover { transform: scale(1.05); border-color: var(--accent); }
 
     </style>
 </head>
 <body>
 
     <div id="mainMenu">
-        <h1 style="font-size: 3.5em; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 5px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);">Business Imperium</h1>
-        <h2 id="menuCash" style="color: var(--green); font-size: 2.5em; margin-bottom: 40px;">10.000 €</h2>
-
+        <h1 style="color:var(--accent); font-size: 3em; margin-bottom: 10px;">BUSINESS IMPERIUM</h1>
+        <h2 style="color:var(--green); margin-bottom: 50px;" id="menuCash">10.000 €</h2>
+        
         <div class="menu-grid">
             <div class="menu-card" onclick="openGame('stocks')">
-                <span style="font-size: 4em;">📈</span>
-                <h3>Wall Street</h3>
-                <p style="color:#888; font-size:0.9em;">Echtzeit Handel</p>
+                <div style="font-size: 4em;">📈</div>
+                <h2>Aktienhandel</h2>
+                <p style="color:#888">Profi-Tools & Charts</p>
             </div>
             <div class="menu-card" onclick="openGame('loot')">
-                <span style="font-size: 4em;">📦</span>
-                <h3>Auktionen</h3>
-                <p style="color:#888; font-size:0.9em;">Glück & Mystery</p>
-            </div>
-            <div class="menu-card" onclick="openGame('casino')">
-                <span style="font-size: 4em;">🎰</span>
-                <h3>Casino</h3>
-                <p style="color:#888; font-size:0.9em;">Alles oder nichts</p>
+                <div style="font-size: 4em;">🎒</div>
+                <h2>Auktionen & Inventar</h2>
+                <p style="color:#888">Items ersteigern & verkaufen</p>
             </div>
             <div class="menu-card" onclick="openGame('tycoon')">
-                <span style="font-size: 4em;">🏨</span>
-                <h3>Immobilien</h3>
-                <p style="color:#888; font-size:0.9em;">Passives Einkommen</p>
+                <div style="font-size: 4em;">🏙️</div>
+                <h2>Immobilien</h2>
+                <p style="color:#888">Miete alle 60 Sekunden</p>
             </div>
-            <div class="menu-card" onclick="openGame('heist')">
-                <span style="font-size: 4em;">🕵️</span>
-                <h3>Tresor</h3>
-                <p style="color:#888; font-size:0.9em;">Skill Minigame</p>
+            <div class="menu-card" onclick="openGame('casino')">
+                <div style="font-size: 4em;">🎰</div>
+                <h2>Casino</h2>
+                <p style="color:#888">Schnelles Geld</p>
             </div>
         </div>
     </div>
 
     <div id="view-stocks" class="game-view">
-        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span class="global-cash" style="font-size:1.5em; color:var(--green); font-weight:bold;"></span></div>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Home</button><span class="global-cash"></span></div>
+        
         <div class="stock-layout">
             <div class="stock-list-container">
-                <table>
-                    <thead><tr><th>Aktie</th><th>Preis</th><th>Besitz</th></tr></thead>
-                    <tbody id="stockTableBody"></tbody>
-                </table>
+                <table><thead><tr><th>Firma</th><th>Kurs</th><th>Besitz</th></tr></thead><tbody id="stockTableBody"></tbody></table>
             </div>
-            <div class="chart-wrapper">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h2 id="stockNameDisplay" style="margin:0;">Wähle eine Aktie</h2>
-                    <h2 id="stockPriceDisplay" style="margin:0;">--</h2>
+            <div style="background: var(--bg-panel); padding: 20px; border-radius: 12px; display: flex; flex-direction: column;">
+                <div style="display:flex; justify-content:space-between;">
+                    <h2 id="stockNameDisplay" style="margin:0">Aktie wählen</h2>
+                    <h2 id="stockPriceDisplay" style="margin:0">--</h2>
                 </div>
-                <div style="flex-grow: 1; position: relative; min-height: 300px;">
-                    <canvas id="stockChartCanvas"></canvas>
+                <div style="flex-grow:1; position:relative; min-height: 250px;"><canvas id="stockChartCanvas"></canvas></div>
+                
+                <div style="margin-top: 15px;">
+                    <input type="number" id="stockInput" class="input-qty" value="1" min="1">
+                    <div class="trade-controls">
+                        <button class="btn-action" style="background:var(--green)" onclick="tradeManual('buy')">Kaufen</button>
+                        <button class="btn-action" style="background:var(--red); color:white" onclick="tradeManual('sell')">Verkaufen</button>
+                        <button class="btn-action" style="background:#222; color:var(--green); border:1px solid var(--green)" onclick="buyMax()">MAX Kaufen</button>
+                        <button class="btn-action" style="background:#222; color:var(--red); border:1px solid var(--red)" onclick="sellAll()">ALLES Verkaufen</button>
+                    </div>
                 </div>
-                <div class="buy-sell-row">
-                    <button class="action-btn" style="background:var(--green);" onclick="tradeStock(1)">KAUFEN</button>
-                    <button class="action-btn" style="background:var(--red); color:white;" onclick="tradeStock(-1)">VERKAUFEN</button>
-                </div>
-                <button onclick="boostStock()" style="margin-top:10px; background:var(--accent); color:black; font-weight:bold; padding:10px; border:none; border-radius:5px; cursor:pointer;">🚀 BOOST (15s)</button>
             </div>
         </div>
     </div>
 
     <div id="view-loot" class="game-view">
-        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span class="global-cash" style="font-size:1.5em; color:var(--green); font-weight:bold;"></span></div>
-        
-        <div style="text-align: center; margin-top: 50px;">
-            <h1 style="color:var(--purple);">Lagerraum Auktionen</h1>
-            <p>Klicke auf einen Container um ihn zu ersteigern!</p>
-            
-            <div class="chest-grid">
-                <div class="chest-card" id="chest1" onclick="openChest(1, 100)">
-                    <span class="chest-icon">📦</span>
-                    <h3>Small Box</h3>
-                    <p style="color:var(--accent);">100 €</p>
-                </div>
-                <div class="chest-card" id="chest2" onclick="openChest(2, 1000)">
-                    <span class="chest-icon">🚚</span>
-                    <h3>Truck Load</h3>
-                    <p style="color:var(--accent);">1.000 €</p>
-                </div>
-                <div class="chest-card" id="chest3" onclick="openChest(3, 5000)">
-                    <span class="chest-icon">🚢</span>
-                    <h3>Container</h3>
-                    <p style="color:var(--accent);">5.000 €</p>
-                </div>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Home</button><span class="global-cash"></span></div>
+
+        <h2 style="color:var(--purple)">Lagerraum Auktionen</h2>
+        <div class="chest-grid">
+            <div class="chest-card" onclick="openChest(100, 'low')">
+                <div style="font-size:3em">📦</div>
+                <h3>Karton (100 €)</h3>
             </div>
-            <h2 id="lootResult" style="margin-top:40px; height: 50px;"></h2>
+            <div class="chest-card" onclick="openChest(1000, 'mid')">
+                <div style="font-size:3em">🚚</div>
+                <h3>Transporter (1.000 €)</h3>
+            </div>
+            <div class="chest-card" onclick="openChest(5000, 'high')">
+                <div style="font-size:3em">🚢</div>
+                <h3>Container (5.000 €)</h3>
+            </div>
         </div>
+
+        <h2 style="border-top: 1px solid #333; padding-top: 20px;">Dein Inventar</h2>
+        <p style="color:#888; font-size:0.9em;">Klicke auf ein Item, um es zu verkaufen.</p>
+        <div id="inventoryList" class="inventory-grid"></div>
     </div>
 
-    <div id="view-casino" class="game-view">
-        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span class="global-cash" style="font-size:1.5em; color:var(--green); font-weight:bold;"></span></div>
-        <div style="text-align:center; padding-top:50px;">
-            <div id="rouletteWheel" style="font-size: 8em; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">🎲</div>
-            <br>
-            <input type="number" id="betAmount" placeholder="Einsatz" style="padding:15px; font-size:1.5em; text-align:center; width:200px; border-radius:10px; border:none;">
-            <br><br>
-            <button class="action-btn" style="background:var(--red); color:white; width:150px;" onclick="spin('red')">ROT (x2)</button>
-            <button class="action-btn" style="background:#333; color:white; border:1px solid white; width:150px;" onclick="spin('black')">SCHWARZ (x2)</button>
-            <br>
-            <h2 id="casinoMsg" style="margin-top:20px;"></h2>
+    <div id="lootPopup" onclick="closePopup()">
+        <div class="loot-reveal">
+            <h2 style="color:white; margin-bottom:10px;">GEFUNDEN!</h2>
+            <span id="popupIcon" class="loot-icon">⌚</span>
+            <h1 id="popupName" style="color:var(--accent)">Rolex</h1>
+            <h3 id="popupValue" style="color:var(--green)">Wert: 5.000 €</h3>
+            <p style="color:#aaa; margin-top:20px;">(Klicke, um ins Inventar zu legen)</p>
         </div>
     </div>
 
     <div id="view-tycoon" class="game-view">
-        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span class="global-cash" style="font-size:1.5em; color:var(--green); font-weight:bold;"></span></div>
-        <h2 style="text-align:center;">Passives Einkommen: <span id="passiveDisplay">0</span> €/s</h2>
-        <div id="tycoonList" class="tycoon-grid"></div>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Home</button><span class="global-cash"></span></div>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2 style="margin:0">Nächste Mietzahlung:</h2>
+            <div class="progress-bar-bg"><div id="rentProgress" class="progress-bar-fill"></div></div>
+            <p style="color:#888">Einkommen: <span id="tycoonIncome">0</span> € / Minute</p>
+        </div>
+
+        <div id="buildingList" class="tycoon-grid"></div>
     </div>
 
-     <div id="view-heist" class="game-view">
-        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span class="global-cash" style="font-size:1.5em; color:var(--green); font-weight:bold;"></span></div>
-        <div style="max-width:500px; margin:50px auto; background:#222; padding:30px; border-radius:20px; text-align:center; border:4px solid #444;">
-            <h1 style="color:var(--red);">SAFE CRACKER</h1>
-            <div style="background:#000; color:var(--red); font-family:monospace; font-size:2em; margin-bottom:20px;" id="safeStatus">LOCKED</div>
-            <div style="width:100%; height:30px; background:#333; position:relative; overflow:hidden; border-radius:15px;">
-                <div id="safeTarget" style="position:absolute; height:100%; background:rgba(0,255,0,0.3); border-left:2px solid lime; border-right:2px solid lime;"></div>
-                <div id="safeCursor" style="position:absolute; width:4px; height:100%; background:white; left:0;"></div>
-            </div>
-            <p>Einsatz: 500 €</p>
-            <button class="action-btn" style="background:var(--red); color:white; width:100%; margin-top:20px;" onclick="tryHeist()">KNACKEN</button>
+    <div id="view-casino" class="game-view">
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Home</button><span class="global-cash"></span></div>
+        <div style="text-align:center; margin-top:50px">
+            <h1 style="font-size:5em">🎰</h1>
+            <input type="number" id="betAmount" class="input-qty" placeholder="Einsatz" style="width:200px; margin-bottom:20px;">
+            <br>
+            <button class="btn-action" style="background:var(--red); color:white; width:150px;" onclick="spinCasino()">Rot/Schwarz (50%)</button>
+            <h2 id="casinoMsg" style="margin-top:20px;"></h2>
         </div>
     </div>
 
     <script>
-        // --- CORE SYSTEM ---
+        // --- GLOBAL ---
         let cash = 10000;
+        let inventory = [];
+        let rentTimer = 0;
         
-        function updateCash(amount) {
-            cash += amount;
-            // Animation für alle Geldanzeigen
-            document.querySelectorAll('.global-cash, #menuCash').forEach(el => {
-                el.innerText = cash.toLocaleString('de-DE', {style:'currency', currency:'EUR'});
-                el.classList.remove('cash-pulse');
-                void el.offsetWidth; // Trigger Reflow
-                el.classList.add('cash-pulse');
-            });
-            renderTycoon(); // Buttons prüfen
-        }
-
-        function openGame(id) {
-            document.getElementById('mainMenu').style.display = 'none';
-            document.querySelectorAll('.game-view').forEach(v => v.style.display = 'none');
-            
-            let view = document.getElementById('view-'+id);
-            view.style.display = 'block';
-            
-            // Spezielle Init
-            if(id === 'stocks') { setTimeout(() => { if(chart) chart.resize(); }, 100); }
-            if(id === 'heist') startHeist();
-            
-            updateCash(0);
+        function formatMoney(n) { return n.toLocaleString('de-DE', {style:'currency', currency:'EUR'}); }
+        
+        function updateUI() {
+            document.getElementById('menuCash').innerText = formatMoney(cash);
+            document.querySelectorAll('.global-cash').forEach(e => e.innerText = "Konto: " + formatMoney(cash));
+            renderInventory();
+            renderTycoon();
         }
 
         function goHome() {
-            document.querySelectorAll('.game-view').forEach(v => v.style.display = 'none');
+            document.querySelectorAll('.game-view').forEach(e => e.style.display = 'none');
             document.getElementById('mainMenu').style.display = 'flex';
-            if(heistInterval) clearInterval(heistInterval);
+        }
+        function openGame(id) {
+            document.getElementById('mainMenu').style.display = 'none';
+            document.getElementById('view-'+id).style.display = 'block';
+            if(id === 'stocks') setTimeout(() => stockChart.resize(), 100);
         }
 
-        // --- 1. SYSTEM: AKTIEN (FIXED & ANIMATED) ---
-        let stocks = [];
-        let selectedStockId = 0;
-        let chart;
-        const HISTORY_SIZE = 40;
+        // --- AKTIEN SYSTEM (PROFI UPDATE) ---
+        let stocks = [], selectedStockId = 0, stockChart;
+        const stockNames = ["TechSoft", "Banana Inc", "MicroHard", "GigaFactory", "SpaceY"];
+        
+        // Init Stocks
+        stockNames.forEach((n, i) => stocks.push({id:i, name:n, price: Math.random()*100+50, history:Array(40).fill(0), owned:0}));
 
-        function initStocks() {
-            const names = ["Apple", "Tesla", "Amazon", "Nvidia", "Google", "Microsoft", "Netflix", "Meta", "Ferrari", "Bitcoin"];
-            for(let i=0; i<names.length; i++) {
-                stocks.push({
-                    id: i,
-                    name: names[i],
-                    price: Math.random() * 200 + 50,
-                    history: Array(HISTORY_SIZE).fill(0),
-                    owned: 0,
-                    trend: 0, // 1=up, -1=down
-                    boost: 0
-                });
-            }
-            
-            const ctx = document.getElementById('stockChartCanvas').getContext('2d');
-            chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Array(HISTORY_SIZE).fill(''),
-                    datasets: [{
-                        label: 'Price',
-                        data: [],
-                        borderColor: '#00ff88',
-                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { x: { display: false }, y: { grid: { color: '#333' } } },
-                    animation: false
-                }
-            });
-            
-            renderStockList();
-            updateChart();
-        }
+        // Init Chart
+        const ctx = document.getElementById('stockChartCanvas').getContext('2d');
+        stockChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: Array(40).fill(''), datasets: [{ data: [], borderColor: '#00ff88', tension: 0.2, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: {legend:false}, scales:{x:{display:false}, y:{grid:{color:'#333'}}} }
+        });
 
-        // Der Markt-Loop (läuft immer im Hintergrund)
+        // Market Loop
         setInterval(() => {
             stocks.forEach(s => {
-                let prev = s.price;
-                
-                if(s.boost > 0) {
-                    s.price *= 1.05; // 5% pro Tick bei Boost
-                    s.boost--;
-                } else {
-                    let move = (Math.random() - 0.5) * 4; // Normal fluctuation
-                    if(Math.random() > 0.95) move *= 5; // Plötzlicher Sprung
-                    s.price += move;
-                }
-                
-                if(s.price < 1) s.price = 1;
-                s.trend = s.price >= prev ? 1 : -1;
-                
-                s.history.shift();
-                s.history.push(s.price);
+                s.price = Math.max(1, s.price + (Math.random()-0.5)*5);
+                s.history.shift(); s.history.push(s.price);
             });
-            
-            // Nur UI updaten wenn wir im Aktien Screen sind
-            if(document.getElementById('view-stocks').style.display === 'block') {
-                renderStockList();
-                updateChart();
-            }
+            renderStocks();
+            updateChart();
         }, 1000);
 
-        function renderStockList() {
-            let html = '';
+        function renderStocks() {
+            let html = "";
             stocks.forEach(s => {
-                let colorClass = s.trend > 0 ? 'flash-g' : 'flash-r';
-                let priceColor = s.trend > 0 ? 'var(--green)' : 'var(--red)';
                 let bg = s.id === selectedStockId ? '#333' : '';
-                
-                html += `<tr onclick="selectStock(${s.id})" style="background:${bg}">
-                    <td style="color:${s.boost>0?'gold':'white'}">${s.name} ${s.boost>0?'🚀':''}</td>
-                    <td style="color:${priceColor}" class="${colorClass}">${s.price.toFixed(2)} €</td>
-                    <td>${s.owned}</td>
-                </tr>`;
+                html += `<tr onclick="selectStock(${s.id})" style="background:${bg}"><td>${s.name}</td><td>${s.price.toFixed(2)}€</td><td>${s.owned}</td></tr>`;
             });
             document.getElementById('stockTableBody').innerHTML = html;
         }
 
-        function selectStock(id) {
-            selectedStockId = id;
-            updateChart();
-        }
-
+        function selectStock(id) { selectedStockId = id; updateChart(); }
+        
         function updateChart() {
             let s = stocks[selectedStockId];
             document.getElementById('stockNameDisplay').innerText = s.name;
             document.getElementById('stockPriceDisplay').innerText = s.price.toFixed(2) + " €";
-            document.getElementById('stockPriceDisplay').style.color = s.trend > 0 ? 'var(--green)' : 'var(--red)';
-            
-            chart.data.datasets[0].data = s.history;
-            chart.data.datasets[0].borderColor = s.boost > 0 ? 'gold' : (s.trend > 0 ? '#00ff88' : '#ff3333');
-            chart.update();
+            stockChart.data.datasets[0].data = s.history;
+            stockChart.update();
         }
 
-        function tradeStock(qty) {
+        // NEUE BUTTON LOGIK
+        function getQty() { return parseInt(document.getElementById('stockInput').value) || 1; }
+        
+        function tradeManual(type) {
+            let qty = getQty();
             let s = stocks[selectedStockId];
-            if(qty > 0) { // Buy
-                if(cash >= s.price) { updateCash(-s.price); s.owned++; }
-            } else { // Sell
-                if(s.owned > 0) { updateCash(s.price); s.owned--; }
+            if(type === 'buy') {
+                if(cash >= s.price * qty) { cash -= s.price * qty; s.owned += qty; }
+            } else {
+                if(s.owned >= qty) { cash += s.price * qty; s.owned -= qty; }
             }
-            renderStockList();
+            updateUI();
         }
 
-        function boostStock() {
-            stocks[selectedStockId].boost = 15;
+        function buyMax() {
+            let s = stocks[selectedStockId];
+            let max = Math.floor(cash / s.price);
+            if(max > 0) { cash -= max * s.price; s.owned += max; updateUI(); }
         }
 
-
-        // --- 2. SYSTEM: AUKTIONEN (ANIMATIONEN) ---
-        let isOpening = false;
-        function openChest(id, cost) {
-            if(isOpening || cash < cost) return;
-            updateCash(-cost);
-            isOpening = true;
-
-            let card = document.getElementById('chest'+id);
-            let icon = card.querySelector('.chest-icon');
-            
-            // 1. Shake Animation
-            icon.classList.add('shaking');
-            document.getElementById('lootResult').innerText = "Öffne...";
-            
-            setTimeout(() => {
-                // 2. Result
-                icon.classList.remove('shaking');
-                let luck = Math.random();
-                let multi = 0;
-                
-                if(luck > 0.9) multi = 4; // Jackpot
-                else if(luck > 0.5) multi = 1.2; // Klein Gewinn
-                else if(luck > 0.2) multi = 0.5; // Verlust
-                else multi = 0; // Niete
-
-                let win = Math.floor(cost * multi);
-                updateCash(win);
-                
-                let resText = document.getElementById('lootResult');
-                if(win > cost) {
-                    resText.innerHTML = `<span style="color:gold; font-size:1.5em; animation:pop 0.5s">JACKPOT! ${win} €</span>`;
-                    // Confetti Effekt simulieren
-                    icon.innerText = "💰";
-                } else if (win === 0) {
-                    resText.innerHTML = `<span style="color:red">Müll... (0 €)</span>`;
-                    icon.innerText = "🗑️";
-                } else {
-                    resText.innerText = `Wert: ${win} €`;
-                    icon.innerText = "✅";
-                }
-
-                // Reset nach 2 Sekunden
-                setTimeout(() => {
-                    isOpening = false;
-                    icon.innerText = id===1?"📦":(id===2?"🚚":"🚢");
-                    resText.innerText = "";
-                }, 2000);
-
-            }, 1000); // 1 Sekunde wackeln
+        function sellAll() {
+            let s = stocks[selectedStockId];
+            if(s.owned > 0) { cash += s.owned * s.price; s.owned = 0; updateUI(); }
         }
 
+        // --- INVENTAR & LOOT SYSTEM ---
+        const itemsDB = {
+            low: [
+                {name: "Alte Socke", val: 5, icon: "🧦", rar: "common"},
+                {name: "Toaster", val: 20, icon: "🍞", rar: "common"},
+                {name: "Gameboy", val: 80, icon: "🎮", rar: "rare"},
+                {name: "Goldring", val: 250, icon: "💍", rar: "legend"}
+            ],
+            mid: [
+                {name: "Fahrrad", val: 150, icon: "🚲", rar: "common"},
+                {name: "Laptop", val: 800, icon: "💻", rar: "rare"},
+                {name: "Gemälde", val: 2500, icon: "🖼️", rar: "legend"}
+            ],
+            high: [
+                {name: "Motorrad", val: 3000, icon: "🏍️", rar: "common"},
+                {name: "Rolex", val: 12000, icon: "⌚", rar: "rare"},
+                {name: "Diamant", val: 50000, icon: "💎", rar: "legend"}
+            ]
+        };
 
-        // --- 3. SYSTEM: CASINO ---
-        function spin(choice) {
-            let bet = parseInt(document.getElementById('betAmount').value);
-            if(!bet || bet > cash) return;
-            updateCash(-bet);
+        function openChest(cost, tier) {
+            if(cash < cost) return alert("Zu wenig Geld!");
+            cash -= cost;
+            updateUI();
             
-            let wheel = document.getElementById('rouletteWheel');
-            wheel.style.transform = "rotate(720deg) scale(0.5)";
+            // Zufälliges Item wählen
+            let pool = itemsDB[tier];
+            let item = pool[Math.floor(Math.random() * pool.length)];
             
-            setTimeout(() => {
-                let win = Math.random() > 0.5; // 50/50 Chance (vereinfacht)
-                wheel.style.transform = "rotate(0deg) scale(1)";
-                
-                if(win) {
-                    updateCash(bet * 2);
-                    document.getElementById('casinoMsg').innerText = "GEWONNEN!";
-                    document.getElementById('casinoMsg').style.color = "lime";
-                } else {
-                    document.getElementById('casinoMsg').innerText = "Verloren...";
-                    document.getElementById('casinoMsg').style.color = "red";
-                }
-            }, 500);
+            // Ins Inventar packen
+            inventory.push(item);
+            
+            // Popup zeigen
+            let popup = document.getElementById('lootPopup');
+            document.getElementById('popupIcon').innerText = item.icon;
+            document.getElementById('popupName').innerText = item.name;
+            document.getElementById('popupValue').innerText = "Wert: " + formatMoney(item.val);
+            popup.style.display = "flex";
         }
 
-        // --- 4. SYSTEM: TYCOON ---
+        function closePopup() {
+            document.getElementById('lootPopup').style.display = "none";
+            updateUI();
+        }
+
+        function renderInventory() {
+            let div = document.getElementById('inventoryList');
+            div.innerHTML = "";
+            inventory.forEach((item, index) => {
+                let rarClass = "rarity-" + item.rar;
+                div.innerHTML += `
+                <div class="inv-item ${rarClass}" onclick="sellItem(${index})">
+                    <div style="font-size:2.5em">${item.icon}</div>
+                    <div>${item.name}</div>
+                    <div style="color:var(--green)">${formatMoney(item.val)}</div>
+                </div>`;
+            });
+        }
+
+        function sellItem(index) {
+            let item = inventory[index];
+            cash += item.val;
+            inventory.splice(index, 1); // Aus Liste entfernen
+            updateUI();
+        }
+
+        // --- TYCOON (1 MINUTE UPDATE) ---
         let buildings = [
-            {id:0, name:"Kiosk", cost:100, inc:1, count:0},
-            {id:1, name:"Wohnung", cost:1000, inc:12, count:0},
-            {id:2, name:"Fabrik", cost:10000, inc:150, count:0},
-            {id:3, name:"Bank", cost:100000, inc:1600, count:0}
+            {id:0, name:"Kiosk", cost:200, income:50, count:0},
+            {id:1, name:"Haus", cost:2000, income:600, count:0},
+            {id:2, name:"Hotel", cost:50000, income:18000, count:0}
         ];
 
         function renderTycoon() {
-            let html = "";
+            let div = document.getElementById('buildingList');
+            div.innerHTML = "";
             let totalInc = 0;
             buildings.forEach(b => {
-                totalInc += b.count * b.inc;
-                let currentCost = Math.floor(b.cost * Math.pow(1.15, b.count));
-                let canBuy = cash >= currentCost;
-                html += `
-                <div class="building-card" onclick="${canBuy ? 'buyBuilding('+b.id+')' : ''}" style="opacity:${canBuy?1:0.5}; cursor:${canBuy?'pointer':'not-allowed'}">
-                    <h3>${b.name} <span style="float:right">x${b.count}</span></h3>
-                    <div style="color:var(--green)">+${b.inc}€/s</div>
-                    <div style="margin-top:5px; font-weight:bold; color:${canBuy?'white':'#555'}">Preis: ${currentCost.toLocaleString()} €</div>
+                totalInc += b.count * b.income;
+                let cost = Math.floor(b.cost * Math.pow(1.15, b.count));
+                div.innerHTML += `
+                <div class="building-card">
+                    <h3>${b.name} (${b.count})</h3>
+                    <p style="color:var(--green)">+${formatMoney(b.income)} / Min.</p>
+                    <button class="btn-action" style="background:var(--blue); width:100%" onclick="buyBuilding(${b.id})">Kaufen (${formatMoney(cost)})</button>
                 </div>`;
             });
-            document.getElementById('tycoonList').innerHTML = html;
-            document.getElementById('passiveDisplay').innerText = totalInc;
+            document.getElementById('tycoonIncome').innerText = formatMoney(totalInc);
         }
 
         function buyBuilding(id) {
             let b = buildings[id];
             let cost = Math.floor(b.cost * Math.pow(1.15, b.count));
-            if(cash >= cost) {
-                updateCash(-cost);
-                b.count++;
-                renderTycoon();
-            }
+            if(cash >= cost) { cash -= cost; b.count++; updateUI(); }
         }
 
+        // Der 60 Sekunden Timer
         setInterval(() => {
-            let inc = 0;
-            buildings.forEach(b => inc += b.count * b.inc);
-            if(inc > 0) updateCash(inc);
+            rentTimer++;
+            let percent = (rentTimer / 60) * 100;
+            document.getElementById('rentProgress').style.width = percent + "%";
+
+            if(rentTimer >= 60) {
+                rentTimer = 0;
+                let income = 0;
+                buildings.forEach(b => income += b.count * b.income);
+                if(income > 0) {
+                    cash += income;
+                    updateUI();
+                    // Kleiner visueller Effekt beim Zahltag
+                    document.getElementById('rentProgress').style.backgroundColor = "white";
+                    setTimeout(() => document.getElementById('rentProgress').style.backgroundColor = "var(--green)", 200);
+                }
+            }
         }, 1000);
 
-        // --- 5. SYSTEM: HEIST ---
-        let heistInterval, hCursor=0, hDir=1, hTarget=40, hWidth=20;
-        function startHeist() {
-            if(heistInterval) clearInterval(heistInterval);
-            hTarget = Math.random() * 80;
-            hWidth = 10 + Math.random() * 10;
-            document.getElementById('safeTarget').style.left = hTarget+"%";
-            document.getElementById('safeTarget').style.width = hWidth+"%";
-            document.getElementById('safeStatus').innerText = "LOCKED";
-            document.getElementById('safeStatus').style.color = "red";
-            
-            heistInterval = setInterval(() => {
-                hCursor += 1.5 * hDir;
-                if(hCursor > 100 || hCursor < 0) hDir *= -1;
-                document.getElementById('safeCursor').style.left = hCursor+"%";
-            }, 10);
-        }
-        function tryHeist() {
-            if(cash < 500) return;
-            updateCash(-500);
-            if(hCursor >= hTarget && hCursor <= hTarget+hWidth) {
-                let loot = 2000 + Math.floor(Math.random()*3000);
-                updateCash(loot);
-                document.getElementById('safeStatus').innerText = "OPEN: +"+loot+"€";
-                document.getElementById('safeStatus').style.color = "lime";
-            } else {
-                document.getElementById('safeStatus').innerText = "ALARM!";
-            }
+        // --- CASINO SIMPEL ---
+        function spinCasino() {
+            let bet = parseInt(document.getElementById('betAmount').value);
+            if(!bet || bet > cash) return;
+            cash -= bet;
+            let win = Math.random() > 0.5;
+            if(win) { cash += bet * 2; document.getElementById('casinoMsg').innerText = "GEWONNEN!"; document.getElementById('casinoMsg').style.color="lime"; }
+            else { document.getElementById('casinoMsg').innerText = "VERLOREN"; document.getElementById('casinoMsg').style.color="red"; }
+            updateUI();
         }
 
         // INIT
-        initStocks();
-        updateCash(0);
+        updateUI();
 
     </script>
 </body>
