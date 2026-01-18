@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Imperium: Wall Street</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            display: grid;
+            gap: 20px;
+        }
+        
+        /* Dashboard */
+        .dashboard {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .cash-display { font-size: 3em; color: #4caf50; font-weight: bold; margin: 5px 0; }
+        .stats { display: flex; justify-content: center; gap: 20px; font-size: 1.1em; color: #aaa; }
+
+        /* Sektionen */
+        .section {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            border: 1px solid #333;
+        }
+        h2 { border-bottom: 1px solid #444; padding-bottom: 10px; margin-top: 0; }
+
+        /* Buttons */
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 12px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        button:active { transform: scale(0.95); }
+        button:disabled { background-color: #444 !important; opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-work { background-color: #2196F3; color: white; width: 100%; padding: 15px; font-size: 1.2em; margin-top: 10px; }
+        .btn-buy { background-color: #ff9800; color: white; }
+        .btn-stock-buy { background-color: #4caf50; color: white; margin-left: 5px;}
+        .btn-stock-sell { background-color: #f44336; color: white; margin-left: 5px;}
+
+        /* Aktien Tabelle */
+        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .stock-table th { text-align: left; color: #888; padding: 5px; }
+        .stock-table td { padding: 10px 5px; border-bottom: 1px solid #333; }
+        .price-up { color: #4caf50; }
+        .price-down { color: #f44336; }
+
+        /* Grid Layout für Desktop */
+        @media (min-width: 768px) {
+            .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="dashboard">
+            <h1>Business Imperium 3.0</h1>
+            <div class="cash-display" id="cashDisplay">1.000 €</div>
+            <div class="stats">
+                <span>🖱️ Klick: <b id="clickValue">10</b> €</span>
+                <span>📈 Passiv: <b id="passiveValue">0</b> €/s</span>
+            </div>
+            <button class="btn-work" onclick="work()">Geld verdienen</button>
+        </div>
+
+        <div class="game-grid">
+            
+            <div class="section">
+                <h2 style="color: #2196F3;">📈 Live Börse</h2>
+                <p><small>Preise aktualisieren sich alle 3 Sekunden.</small></p>
+                
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Aktie</th>
+                            <th>Preis</th>
+                            <th>Besitz</th>
+                            <th>Aktion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockList">
+                        </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 style="color: #ff9800;">🏭 Firmen-Upgrades</h2>
+                
+                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Zeitungsstand</strong><br>
+                        <small>+5 € / Sekunde</small>
+                    </div>
+                    <button class="btn-buy" id="buyPassive1" onclick="buyPassive(500, 5)">Kaufen (500 €)</button>
+                </div>
+
+                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Pizza-Service</strong><br>
+                        <small>+25 € / Sekunde</small>
+                    </div>
+                    <button class="btn-buy" id="buyPassive2" onclick="buyPassive(2000, 25)">Kaufen (2k €)</button>
+                </div>
+
+                 <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>Tech Startup</strong><br>
+                        <small>+150 € / Sekunde</small>
+                    </div>
+                    <button class="btn-buy" id="buyPassive3" onclick="buyPassive(10000, 150)">Kaufen (10k €)</button>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="section" style="border-color: #e91e63;">
+            <h2 style="color: #e91e63;">🎰 Schnelles Glück</h2>
+            <button onclick="gamble(100)" style="background:#333; color:#fff;">100 € setzen (50% Chance)</button>
+            <button onclick="gamble(1000)" style="background:#333; color:#fff;">1.000 € setzen</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- GRUNDWERTE ---
+        let cash = 1000;
+        let incomePerClick = 10;
+        let incomePerSecond = 0;
+
+        // --- AKTIEN SYSTEM ---
+        // Wir definieren Aktien mit Namen, aktuellem Preis und Volatilität (wie stark sie schwanken)
+        let stocks = [
+            { id: 0, name: "Apple (AAPL)", price: 175.50, owned: 0, volatility: 2.5 },
+            { id: 1, name: "Tesla (TSLA)", price: 240.00, owned: 0, volatility: 5.0 }, // Tesla schwankt stärker
+            { id: 2, name: "Bitcoin (BTC)", price: 35000.00, owned: 0, volatility: 1200.0 } // Bitcoin schwankt extrem
+        ];
+
+        // --- CORE LOOP ---
+        
+        // 1. Passives Einkommen (jede Sekunde)
+        setInterval(() => {
+            if(incomePerSecond > 0) {
+                cash += incomePerSecond;
+                updateUI(); // UI nur updaten, aber Börse nicht
+            }
+        }, 1000);
+
+        // 2. Börsen-Ticker (alle 3 Sekunden)
+        setInterval(() => {
+            fluctuateMarket();
+        }, 3000);
+
+        // --- FUNKTIONEN ---
+
+        function work() {
+            cash += incomePerClick;
+            updateUI();
+        }
+
+        // Markt simulieren
+        function fluctuateMarket() {
+            stocks.forEach(stock => {
+                // Zufällige Änderung: Positiv oder Negativ
+                let change = (Math.random() - 0.5) * stock.volatility * 2; 
+                stock.price += change;
+                
+                // Preis darf nicht unter 1€ fallen
+                if(stock.price < 1) stock.price = 1;
+            });
+            renderStocks();
+        }
+
+        function buyStock(id) {
+            let stock = stocks[id];
+            if(cash >= stock.price) {
+                cash -= stock.price;
+                stock.owned++;
+                updateUI();
+                renderStocks();
+            } else {
+                alert("Nicht genug Geld für diese Aktie!");
+            }
+        }
+
+        function sellStock(id) {
+            let stock = stocks[id];
+            if(stock.owned > 0) {
+                cash += stock.price;
+                stock.owned--;
+                updateUI();
+                renderStocks();
+            } else {
+                alert("Du besitzt diese Aktie nicht!");
+            }
+        }
+
+        // Aktien Tabelle zeichnen
+        function renderStocks() {
+            const list = document.getElementById('stockList');
+            list.innerHTML = ""; // Liste leeren
+
+            stocks.forEach(stock => {
+                let priceClass = "price-up"; // Hier könnte man Logik für rot/grün einbauen
+
+                let html = `
+                    <tr>
+                        <td><strong>${stock.name}</strong></td>
+                        <td class="${priceClass}">${stock.price.toFixed(2)} €</td>
+                        <td>${stock.owned} Stk.</td>
+                        <td>
+                            <button class="btn-stock-buy" onclick="buyStock(${stock.id})">K</button>
+                            <button class="btn-stock-sell" onclick="sellStock(${stock.id})">V</button>
+                        </td>
+                    </tr>
+                `;
+                list.innerHTML += html;
+            });
+        }
+
+        // Shop System
+        function buyPassive(cost, incomeAdd) {
+            if (cash >= cost) {
+                cash -= cost;
+                incomePerSecond += incomeAdd;
+                updateUI();
+                checkButtons();
+            }
+        }
+
+        // Casino Simpel
+        function gamble(amount) {
+            if(cash >= amount) {
+                if(Math.random() > 0.5) {
+                    cash += amount;
+                    alert("Gewonnen!");
+                } else {
+                    cash -= amount;
+                    alert("Verloren!");
+                }
+                updateUI();
+            } else {
+                alert("Zu wenig Geld!");
+            }
+        }
+
+        // UI Updates
+        function updateUI() {
+            document.getElementById('cashDisplay').innerText = cash.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0}) + " €";
+            document.getElementById('clickValue').innerText = incomePerClick;
+            document.getElementById('passiveValue').innerText = incomePerSecond;
+            checkButtons();
+        }
+
+        function checkButtons() {
+            // Hilfsfunktion um Buttons zu grauen (vereinfacht)
+            // Hier könnte man Klassen hinzufügen/entfernen
+        }
+
+        // Init beim Start
+        renderStocks();
+        updateUI();
+
+    </script>
+</body>
+</html>
