@@ -3,1094 +3,611 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Imperium: CEO Ultimate</title>
+    <title>Imperium: CEO Professional</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* --- GLOBAL VARIABLES & THEME --- */
         :root {
-            --bg-dark: #0f172a;
-            --bg-panel: #1e293b;
-            --bg-lighter: #334155;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            
-            --accent: #38bdf8;
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #eab308;
-            --purple: #a855f7;
-            
-            --border: 1px solid rgba(255,255,255,0.1);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --bg: #0f172a; --panel: #1e293b; --border: #334155;
+            --accent: #0ea5e9; --green: #22c55e; --red: #ef4444; --orange: #f59e0b;
+            --text: #f1f5f9;
         }
+        * { box-sizing: border-box; user-select: none; scrollbar-width: thin; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* --- BASE STYLES --- */
-        body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            user-select: none;
-        }
+        /* UI LAYOUT */
+        .top-bar { height: 60px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 10; }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 250px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 20px; gap: 10px; }
+        .content { flex: 1; padding: 20px; overflow-y: auto; position: relative; background: radial-gradient(circle at top right, #1e293b 0%, #0f172a 60%); }
 
-        /* SCROLLBARS */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--bg-lighter); border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+        /* COMPONENTS */
+        .stat-badge { background: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-family: monospace; font-size: 1.1em; }
+        .btn { border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; width: 100%; }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-success { background: var(--green); color: black; }
+        .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--red); border: 1px solid var(--red); }
+        .btn-nav { background: transparent; color: #94a3b8; justify-content: flex-start; }
+        .btn-nav.active { background: var(--accent); color: white; }
+        .btn-nav:hover:not(.active) { background: rgba(255,255,255,0.05); }
 
-        /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } }
-        @keyframes flashGreen { 0% { background-color: rgba(34, 197, 94, 0.2); } 100% { background-color: transparent; } }
-        @keyframes flashRed { 0% { background-color: rgba(239, 68, 68, 0.2); } 100% { background-color: transparent; } }
-
-        /* --- LAYOUT COMPONENTS --- */
-        .app-container {
-            display: grid;
-            grid-template-rows: 60px 1fr;
-            height: 100vh;
-        }
-
-        /* TOP NAVIGATION */
-        .navbar {
-            background-color: var(--bg-panel);
-            border-bottom: var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            box-shadow: var(--shadow);
-            z-index: 100;
-        }
-
-        .nav-brand { font-size: 1.5rem; font-weight: bold; color: var(--accent); letter-spacing: 2px; }
-        .nav-stats { display: flex; gap: 20px; font-family: monospace; font-size: 1.1rem; }
-        .stat-item { display: flex; align-items: center; gap: 8px; }
-        .cash-display { color: var(--success); text-shadow: 0 0 10px rgba(34, 197, 94, 0.3); }
-
-        /* MAIN CONTENT AREA */
-        .content-area {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .view {
-            display: none;
-            height: 100%;
-            overflow-y: auto;
-            padding: 20px;
-            box-sizing: border-box;
-            animation: fadeIn 0.3s ease-out;
-        }
-        .view.active { display: block; }
-
-        /* --- MENU GRID --- */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 40px auto;
-        }
-
-        .menu-card {
-            background: var(--bg-panel);
-            border: var(--border);
-            border-radius: 12px;
-            padding: 30px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .menu-card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .menu-card i { font-size: 3rem; margin-bottom: 15px; color: var(--text-muted); transition: 0.3s; }
-        .menu-card:hover i { color: var(--accent); transform: scale(1.1); }
-        .menu-card h2 { margin: 10px 0; }
-        .menu-card p { color: var(--text-muted); font-size: 0.9rem; }
-
-        /* --- COMPANY DASHBOARD --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            height: 100%;
-        }
-
-        /* SIDEBAR (Company) */
-        .sidebar {
-            background: var(--bg-panel);
-            border: var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
-
-        .info-box { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: var(--border); }
-        .info-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-        .info-value { font-size: 1.2rem; font-weight: bold; margin-top: 5px; }
-
-        /* MAIN DASH (Company) */
-        .main-dash {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            overflow-y: auto;
-        }
-
-        .chart-container {
-            background: var(--bg-panel);
-            border: var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            min-height: 300px;
-        }
-
-        .department-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .dept-card {
-            background: var(--bg-panel);
-            border: var(--border);
-            border-radius: 10px;
-            padding: 15px;
-            border-top: 4px solid var(--text-muted);
-        }
-        .dept-prod { border-color: var(--warning); }
-        .dept-sales { border-color: var(--success); }
-        .dept-hr { border-color: var(--purple); }
-
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
-        .btn {
-            flex: 1;
-            border: none;
-            padding: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-            font-size: 0.9rem;
-        }
-        .btn:active { transform: scale(0.95); }
-        .btn-hire { background: var(--success); color: #000; }
-        .btn-fire { background: var(--bg-lighter); color: var(--danger); border: 1px solid var(--danger); }
-        .btn-action { background: var(--accent); color: #000; width: 100%; margin-top: 10px; padding: 12px; font-size: 1rem; }
+        /* DASHBOARD GRID */
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .card { background: rgba(30, 41, 59, 0.7); border: 1px solid var(--border); border-radius: 10px; padding: 20px; backdrop-filter: blur(10px); }
+        .card h3 { margin-top: 0; color: var(--accent); display: flex; justify-content: space-between; }
+        
+        /* PERFORMANCE BARS */
+        .perf-container { margin-top: 10px; }
+        .perf-label { font-size: 0.8em; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .progress-bg { height: 6px; background: #0f172a; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; transition: width 0.2s linear; }
+        .fill-blue { background: var(--accent); }
+        .fill-green { background: var(--green); }
+        .fill-orange { background: var(--orange); }
+        
+        /* LOG CONSOLE */
+        .console { height: 150px; background: #000; border: 1px solid var(--border); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.85em; overflow-y: auto; color: var(--green); display: flex; flex-direction: column-reverse; }
+        .log-item { border-bottom: 1px solid #111; padding: 2px 0; }
 
         /* CONTRACTS */
-        .contract-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-        }
-        .contract-card {
-            background: var(--bg-panel);
-            border: var(--border);
-            padding: 15px;
-            border-radius: 8px;
-            position: relative;
-            animation: fadeIn 0.5s;
-        }
-        .contract-timer { position: absolute; top: 10px; right: 10px; font-size: 0.8rem; color: var(--warning); }
+        .contract-item { background: var(--bg); border: 1px solid var(--border); padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .contract-status { font-size: 0.8em; padding: 2px 6px; border-radius: 4px; background: #333; }
+        .status-delivering { color: var(--orange); border: 1px solid var(--orange); animation: pulse 1s infinite; }
 
-        /* --- STOCKS & REAL ESTATE --- */
-        .market-layout {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 20px;
-            height: 90vh;
-        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         
-        .list-container {
-            background: var(--bg-panel);
-            border: var(--border);
-            border-radius: 12px;
-            overflow-y: auto;
-        }
-
-        table { width: 100%; border-collapse: collapse; }
-        th { position: sticky; top: 0; background: var(--bg-dark); padding: 15px; text-align: left; z-index: 10; border-bottom: 2px solid var(--border); }
-        td { padding: 12px 15px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-        tr:hover { background: var(--bg-lighter); }
-        .val-up { color: var(--success); }
-        .val-down { color: var(--danger); }
-
-        /* --- MODALS --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-box {
-            background: var(--bg-panel);
-            border: 1px solid var(--accent);
-            padding: 30px;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
-            animation: fadeIn 0.3s;
-        }
-        .modal-header { font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--accent); }
+        /* MODALS */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-box { background: var(--panel); padding: 30px; border-radius: 12px; width: 500px; border: 1px solid var(--accent); }
         
-        /* FORM ELEMENTS */
-        .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
-        input, select {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg-dark);
-            border: 1px solid var(--border);
-            color: white;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        input:focus, select:focus { outline: none; border-color: var(--accent); }
-
-        /* MATERIAL SELECTION GRID */
-        .material-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .mat-option {
-            background: var(--bg-dark); border: 1px solid var(--border); padding: 10px;
-            border-radius: 6px; cursor: pointer; text-align: center;
-        }
-        .mat-option.selected { border-color: var(--success); background: rgba(34, 197, 94, 0.1); }
-
-        /* NOTIFICATIONS */
-        #toast-container {
-            position: fixed; bottom: 20px; right: 20px; z-index: 2000;
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        .toast {
-            background: var(--bg-panel); border-left: 4px solid var(--accent);
-            padding: 15px 20px; border-radius: 4px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            min-width: 250px; animation: fadeIn 0.3s; display: flex; align-items: center; gap: 10px;
-        }
-        .toast.success { border-color: var(--success); }
-        .toast.error { border-color: var(--danger); }
-
+        /* INPUTS */
+        input, select { background: var(--bg); border: 1px solid var(--border); color: white; padding: 10px; width: 100%; border-radius: 5px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="toast-container"></div>
-
-    <div class="app-container">
-        <div class="navbar">
-            <div class="nav-brand" onclick="goHome()" style="cursor: pointer;">Imperium OS <span style="font-size:0.5em; color:#666">v21.0</span></div>
-            <div class="nav-stats">
-                <div class="stat-item"><i class="fas fa-wallet"></i> <span id="global-cash" class="cash-display">0 €</span></div>
-                <div class="stat-item"><i class="fas fa-star"></i> <span id="global-rep">0</span> Ruf</div>
-                <div class="stat-item" style="font-size: 0.8em; color: #666;" id="game-clock">Tag 1</div>
-            </div>
-        </div>
-
-        <div class="content-area">
-            
-            <div id="view-home" class="view active">
-                <div class="menu-grid">
-                    <div class="menu-card" onclick="openView('company')">
-                        <i class="fas fa-building"></i>
-                        <h2>Meine Firma</h2>
-                        <p>Produktion, Management & Vertrieb</p>
-                    </div>
-                    <div class="menu-card" onclick="openView('stocks')">
-                        <i class="fas fa-chart-line"></i>
-                        <h2>Aktienmarkt</h2>
-                        <p>Globaler Handel & Echtzeit-Daten</p>
-                    </div>
-                    <div class="menu-card" onclick="openView('estate')">
-                        <i class="fas fa-city"></i>
-                        <h2>Immobilien</h2>
-                        <p>Kaufen, Vermieten & Verhandeln</p>
-                    </div>
-                    <div class="menu-card" onclick="openView('casino')">
-                        <i class="fas fa-dice"></i>
-                        <h2>Casino</h2>
-                        <p>High Stakes Lounge</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-company" class="view">
-                <div id="company-setup" style="max-width: 500px; margin: 50px auto; text-align: center;">
-                    <h1 style="color:var(--accent); margin-bottom: 20px;">Startup Gründen</h1>
-                    <div class="form-group">
-                        <label>Firmenname</label>
-                        <input id="setup-name" placeholder="z.B. Apex Industries">
-                    </div>
-                    <div class="form-group">
-                        <label>Branche</label>
-                        <select id="setup-type">
-                            <option value="tech">Technologie (High Tech)</option>
-                            <option value="auto">Automobil (Industrie)</option>
-                            <option value="food">Nahrungsmittel (Konsum)</option>
-                        </select>
-                    </div>
-                    <button class="btn-action" onclick="createCompany()">Gründen (Gebühr: 25.000 €)</button>
-                </div>
-
-                <div id="company-dash" style="display: none; height: 100%;">
-                    <div class="dashboard-grid">
-                        <div class="sidebar">
-                            <h2 id="comp-title">FIRMA</h2>
-                            
-                            <div class="info-box">
-                                <div class="info-label">Kapitalfluss</div>
-                                <div class="info-value" id="comp-flow">0 €/Min</div>
-                            </div>
-                            
-                            <div class="info-box">
-                                <div class="info-label">Kundenzufriedenheit</div>
-                                <div class="info-value" id="comp-satisfaction" style="color:var(--success)">100%</div>
-                                <div style="font-size:0.8rem; color:#666; margin-top:5px;">Beeinflusst Verkaufsrate</div>
-                            </div>
-
-                            <button class="btn-action" style="background:var(--purple)" onclick="openProductDesigner()">
-                                <i class="fas fa-pencil-ruler"></i> Neues Produkt
-                            </button>
-                            
-                            <button class="btn-action" style="background:var(--warning); color:black;" onclick="openMarketing()">
-                                <i class="fas fa-bullhorn"></i> Marketing Kampagne
-                            </button>
-                        </div>
-
-                        <div class="main-dash">
-                            <div class="chart-container">
-                                <canvas id="companyChart"></canvas>
-                            </div>
-
-                            <div class="department-grid">
-                                <div class="dept-card dept-prod">
-                                    <h3><i class="fas fa-boxes"></i> Lager & Einkauf</h3>
-                                    <p>Rohstoffe: <span id="val-raw">0</span></p>
-                                    <p class="info-label">Personal: <span id="staff-buy">0</span></p>
-                                    <div class="btn-group">
-                                        <button class="btn btn-hire" onclick="hire('buy')">+ Hire</button>
-                                        <button class="btn btn-fire" onclick="fire('buy')">- Fire</button>
-                                    </div>
-                                </div>
-                                <div class="dept-card dept-prod">
-                                    <h3><i class="fas fa-industry"></i> Produktion</h3>
-                                    <p>Fertigware: <span id="val-stock">0</span></p>
-                                    <p class="info-label">Personal: <span id="staff-make">0</span></p>
-                                    <div class="btn-group">
-                                        <button class="btn btn-hire" onclick="hire('make')">+ Hire</button>
-                                        <button class="btn btn-fire" onclick="fire('make')">- Fire</button>
-                                    </div>
-                                </div>
-                                <div class="dept-card dept-sales">
-                                    <h3><i class="fas fa-hand-holding-usd"></i> Vertrieb</h3>
-                                    <p>Verkäufe/Min: <span id="val-sales-rate">0</span></p>
-                                    <p class="info-label">Personal: <span id="staff-sell">0</span></p>
-                                    <div class="btn-group">
-                                        <button class="btn btn-hire" onclick="hire('sell')">+ Hire</button>
-                                        <button class="btn btn-fire" onclick="fire('sell')">- Fire</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="info-box" style="display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div class="info-label">Aktuelles Produkt</div>
-                                    <div class="info-value" id="curr-prod-name">Keines</div>
-                                </div>
-                                <div style="text-align:right;">
-                                    <div>Kosten: <span id="curr-prod-cost">0</span> € | Preis: <span id="curr-prod-price">0</span> €</div>
-                                    <div style="font-size:0.9rem; color:var(--accent);">Marge: <span id="curr-prod-margin">0</span>%</div>
-                                </div>
-                            </div>
-
-                            <h3 style="margin-top: 20px;">Offene Aufträge (Contracts)</h3>
-                            <div id="contracts-list" class="contract-list">
-                                </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-stocks" class="view">
-                <div class="market-layout">
-                    <div class="list-container">
-                        <table>
-                            <thead><tr><th>Firma</th><th>Preis</th><th>%</th></tr></thead>
-                            <tbody id="stock-list-body"></tbody>
-                        </table>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:20px;">
-                        <div class="chart-container" style="flex:1;">
-                            <canvas id="stockChart"></canvas>
-                        </div>
-                        <div class="info-box">
-                            <h2 id="stock-name-disp">Aktie Wählen</h2>
-                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <button class="btn-action" style="background:var(--success)" onclick="tradeStock('buy')">Kaufen</button>
-                                <button class="btn-action" style="background:var(--danger); color:white;" onclick="tradeStock('sell')">Verkaufen</button>
-                            </div>
-                            <div style="margin-top:10px;">
-                                Menge: <input type="number" id="stock-qty" value="10" style="width:100px; display:inline-block;">
-                                <span style="float:right">Besitz: <span id="stock-owned">0</span></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-estate" class="view">
-                <div class="menu-grid" id="estate-grid"></div>
-            </div>
-            <div id="view-casino" class="view">
-                <div style="text-align:center; padding-top:50px;">
-                    <h1>🎰</h1>
-                    <p>Setze auf Rot oder Schwarz</p>
-                    <input type="number" id="casino-bet" placeholder="Einsatz" style="width:200px; text-align:center;">
-                    <br><br>
-                    <button class="btn btn-red" style="padding:15px 30px" onclick="spinCasino()">Spin!</button>
-                </div>
-            </div>
-
+    <div class="top-bar">
+        <div style="font-weight:bold; font-size:1.2em; color:var(--accent);"><i class="fas fa-building"></i> CEO PRO v22.0</div>
+        <div style="display:flex; gap:15px;">
+            <div class="stat-badge"><i class="fas fa-wallet" style="color:var(--green)"></i> <span id="ui-cash">0 €</span></div>
+            <div class="stat-badge"><i class="fas fa-star" style="color:var(--orange)"></i> <span id="ui-rep">0</span> Ruf</div>
         </div>
     </div>
 
-    <div id="modal-product" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-header">Neues Produkt entwerfen</div>
+    <div class="main-container">
+        <div class="sidebar">
+            <button class="btn btn-nav active" onclick="setView('dash')"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button class="btn btn-nav" onclick="setView('production')"><i class="fas fa-industry"></i> Produktion & Lager</button>
+            <button class="btn btn-nav" onclick="setView('sales')"><i class="fas fa-shipping-fast"></i> Verkauf & Logistik</button>
+            <button class="btn btn-nav" onclick="setView('product')"><i class="fas fa-pencil-ruler"></i> Produkt Design</button>
+            <div style="flex:1"></div>
+            <div class="stat-badge" style="justify-content:center; font-size:0.9em; color:#666;">Tag <span id="ui-day">1</span></div>
+        </div>
+
+        <div class="content" id="view-dash">
             
-            <div class="form-group">
+            <div id="setup-screen" style="max-width:400px; margin: 50px auto; text-align:center;">
+                <h1 style="color:var(--accent)">Unternehmen gründen</h1>
+                <p style="color:#999">Wähle deinen Namen und starte dein Imperium.</p>
+                <input id="setup-name" placeholder="Firmenname">
+                <button class="btn btn-primary" onclick="Game.startCompany()">Gründen (Startkapital: 50.000€)</button>
+            </div>
+
+            <div id="dash-screen" style="display:none;">
+                <div class="grid-4">
+                    <div class="card">
+                        <h3>Einkauf (Mat.)</h3>
+                        <div class="perf-container">
+                            <div class="perf-label"><span>Bestand</span> <span id="d-raw">0</span></div>
+                            <div class="progress-bg"><div id="bar-raw" class="progress-fill fill-blue"></div></div>
+                        </div>
+                        <div class="perf-container" style="margin-top:10px;">
+                            <div class="perf-label"><span>Effizienz</span> <span id="eff-buy">0%</span></div>
+                            <div class="progress-bg"><div id="bar-eff-buy" class="progress-fill fill-green"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Produktion</h3>
+                        <div class="perf-container">
+                            <div class="perf-label"><span>Fertigware</span> <span id="d-stock">0</span></div>
+                            <div class="progress-bg"><div id="bar-stock" class="progress-fill fill-orange"></div></div>
+                        </div>
+                        <div class="perf-container" style="margin-top:10px;">
+                            <div class="perf-label"><span>Auslastung</span> <span id="eff-make">0%</span></div>
+                            <div class="progress-bg"><div id="bar-eff-make" class="progress-fill fill-green"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Vertrieb</h3>
+                        <div class="perf-container">
+                            <div class="perf-label"><span>Verkäufe/Min</span> <span id="d-sales">0</span></div>
+                        </div>
+                        <div class="perf-container" style="margin-top:10px;">
+                            <div class="perf-label"><span>Aktivität</span> <span id="eff-sell">0%</span></div>
+                            <div class="progress-bg"><div id="bar-eff-sell" class="progress-fill fill-green"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Logistik</h3>
+                        <div class="perf-container">
+                            <div class="perf-label"><span>In Lieferung</span> <span id="d-ship">0</span></div>
+                        </div>
+                        <div class="perf-container" style="margin-top:10px;">
+                            <div class="perf-label"><span>Tempo</span> <span id="eff-log">0%</span></div>
+                            <div class="progress-bg"><div id="bar-eff-log" class="progress-fill fill-green"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card" style="height:300px;">
+                        <h3><i class="fas fa-chart-line"></i> Umsatz (Live)</h3>
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    <div class="card" style="height:300px; display:flex; flex-direction:column;">
+                        <h3><i class="fas fa-list"></i> Firmen-Log</h3>
+                        <div class="console" id="console-log"></div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top:30px; border-bottom:1px solid #333; padding-bottom:10px;">Aktive Aufträge & Lieferungen</h3>
+                <div id="contracts-list">
+                    </div>
+
+            </div>
+        </div>
+
+        <div class="content" id="view-product" style="display:none;">
+            <div class="card" style="max-width:600px; margin:0 auto;">
+                <h3>Produkt Entwicklung</h3>
                 <label>Produktname</label>
-                <input id="design-name" placeholder="z.B. iPhone 20">
-            </div>
+                <input id="prod-name" placeholder="z.B. iPhone X">
+                
+                <label>Materialien wählen (Beeinflusst Qualität & Kosten)</label>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <button class="btn" id="mat-wood" onclick="Product.toggleMat('wood', 5)">Holz (5€)</button>
+                    <button class="btn" id="mat-steel" onclick="Product.toggleMat('steel', 20)">Stahl (20€)</button>
+                    <button class="btn" id="mat-plastic" onclick="Product.toggleMat('plastic', 10)">Plastik (10€)</button>
+                    <button class="btn" id="mat-gold" onclick="Product.toggleMat('gold', 100)">Gold (100€)</button>
+                </div>
 
-            <div class="form-group">
-                <label>Materialien (Qualität & Kosten)</label>
-                <div class="material-grid" id="mat-grid">
-                    </div>
-            </div>
+                <div style="background:#0f172a; padding:15px; border-radius:6px; margin:15px 0;">
+                    <div style="display:flex; justify-content:space-between;"><span>Herstellkosten:</span> <span id="calc-cost">0 €</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>Qualität:</span> <span id="calc-qual">0</span></div>
+                </div>
 
-            <div class="form-group">
                 <label>Verkaufspreis festlegen</label>
-                <input type="range" id="price-slider" min="10" max="1000" value="100" oninput="updateDesignPreview()">
-                <div style="display:flex; justify-content:space-between; margin-top:5px;">
-                    <span>Herstellung: <b id="preview-cost">0 €</b></span>
-                    <span>Verkauf: <b id="preview-price" style="color:var(--accent)">100 €</b></span>
+                <input type="range" id="price-slider" min="10" max="500" value="50" oninput="Product.updatePreview()">
+                <p style="text-align:center; font-size:1.2em; font-weight:bold; color:var(--accent)">Verkaufspreis: <span id="calc-price">50</span> €</p>
+                <p style="text-align:center; font-size:0.9em; color:#999">Kundenmeinung: <span id="calc-sentiment">--</span></p>
+
+                <button class="btn btn-primary" onclick="Product.save()">Produktion Umstellen</button>
+            </div>
+        </div>
+
+        <div class="content" id="view-production" style="display:none;">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Personal: Einkauf</h3>
+                    <h1 id="count-buy">0</h1>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-success" onclick="Staff.hire('buy')">Einstellen (500€)</button>
+                        <button class="btn btn-danger" onclick="Staff.fire('buy')">Feuern</button>
+                    </div>
+                    <p style="font-size:0.8em; color:#888;">Kauft Rohstoffe automatisch nach.</p>
+                </div>
+                <div class="card">
+                    <h3>Personal: Produktion</h3>
+                    <h1 id="count-make">0</h1>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-success" onclick="Staff.hire('make')">Einstellen (500€)</button>
+                        <button class="btn btn-danger" onclick="Staff.fire('make')">Feuern</button>
+                    </div>
+                    <p style="font-size:0.8em; color:#888;">Verarbeitet Rohstoffe zu Produkten.</p>
                 </div>
             </div>
-
-            <div class="info-box" style="text-align:center; margin-bottom:20px;">
-                <div class="info-label">Prognose</div>
-                <div id="preview-sentiment" style="font-size:1.2rem; font-weight:bold;">--</div>
-            </div>
-
-            <button class="btn-action" onclick="launchProduct()">Produktion starten</button>
-            <button class="btn" style="width:100%; margin-top:10px; background:transparent;" onclick="closeModal()">Abbrechen</button>
         </div>
-    </div>
 
-    <div id="modal-report" class="modal-overlay">
-        <div class="modal-box" style="text-align:center;">
-            <div class="modal-header">Monatsbericht</div>
-            <h1 id="report-profit">0 €</h1>
-            <p>Netto Gewinn/Verlust</p>
-            <div style="text-align:left; margin: 20px 0;">
-                <div style="display:flex; justify-content:space-between;"><span>Einnahmen:</span> <span id="report-inc" style="color:var(--success)">0</span></div>
-                <div style="display:flex; justify-content:space-between;"><span>Personalkosten:</span> <span id="report-wages" style="color:var(--danger)">0</span></div>
-                <div style="display:flex; justify-content:space-between;"><span>Materialkosten:</span> <span id="report-mats" style="color:var(--danger)">0</span></div>
+        <div class="content" id="view-sales" style="display:none;">
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Personal: Vertrieb</h3>
+                    <h1 id="count-sell">0</h1>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-success" onclick="Staff.hire('sell')">Einstellen (500€)</button>
+                        <button class="btn btn-danger" onclick="Staff.fire('sell')">Feuern</button>
+                    </div>
+                    <p style="font-size:0.8em; color:#888;">Findet Kunden und Aufträge.</p>
+                </div>
+                <div class="card">
+                    <h3>Personal: Logistik (NEU)</h3>
+                    <h1 id="count-log">0</h1>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-success" onclick="Staff.hire('log')">Einstellen (500€)</button>
+                        <button class="btn btn-danger" onclick="Staff.fire('log')">Feuern</button>
+                    </div>
+                    <p style="font-size:0.8em; color:#888;">Liefert Ware aus. Ohne Logistik kein Geld!</p>
+                </div>
             </div>
-            <button class="btn-action" onclick="closeModal()">Bestätigen</button>
         </div>
+
     </div>
 
     <script>
-        /* ==========================================
-           GAME ENGINE & STATE
-           ========================================== */
+        /* --- GAME ENGINE --- */
         const Game = {
-            tickRate: 100, // ms
-            dayLength: 50, // ticks per day
             tick: 0,
+            cash: 50000,
+            reputation: 0,
             day: 1,
+            company: null,
+            activeView: 'dash',
             
-            state: {
-                cash: 50000,
-                reputation: 10,
-                inventory: [], // Personal inventory (Loot)
-                company: null, // The player's company object
-                stocks: [],
-                properties: [],
-                stats: { totalSales: 0, totalProfit: 0 }
-            },
+            // Stats for chart
+            revenueHistory: Array(20).fill(0),
+            chart: null,
 
-            // Constants
-            materials: [
-                {id: 'plastic', name: 'Plastik', cost: 10, quality: 1},
-                {id: 'metal', name: 'Metall', cost: 30, quality: 3},
-                {id: 'glass', name: 'Glas', cost: 20, quality: 2},
-                {id: 'silicon', name: 'Silizium', cost: 80, quality: 5},
-                {id: 'gold', name: 'Gold', cost: 300, quality: 10},
-            ],
-
-            init: function() {
-                this.initStocks();
-                this.initEstate();
-                this.ui.updateGlobal();
-                this.loop = setInterval(() => this.update(), this.tickRate);
-                this.ui.initCharts();
-            },
-
-            update: function() {
-                this.tick++;
+            startCompany: function() {
+                const name = document.getElementById('setup-name').value;
+                if(!name) return alert("Bitte Namen eingeben!");
                 
-                // Day Cycle
-                if(this.tick % this.dayLength === 0) {
-                    this.day++;
-                    document.getElementById('game-clock').innerText = "Tag " + this.day;
-                    this.stockMarketTick();
-                    this.companyDailyUpdate();
-                }
-
-                // High Frequency Updates (Company Operations)
-                if(this.state.company) {
-                    this.companyTick();
-                }
-
-                // Random Events
-                if(Math.random() < 0.001) this.generateContract();
-            },
-
-            /* --- COMPANY LOGIC --- */
-            createCompany: function(name, type) {
-                if(this.state.cash < 25000) return toast("Nicht genug Geld!", "error");
-                this.state.cash -= 25000;
-                
-                this.state.company = {
+                this.company = {
                     name: name,
-                    type: type,
-                    product: null, // Active product
+                    product: { name: "Prototyp", cost: 10, price: 25, quality: 1 },
                     
-                    // Resources
-                    rawMaterials: 0,
-                    stock: 0, // Finished goods
+                    // Inventory
+                    raw: 0,
+                    stock: 0,
                     
                     // Staff
-                    staff: { buy: 0, make: 0, sell: 0 },
+                    staff: { buy: 0, make: 0, sell: 0, log: 0 },
                     
-                    // Financials (Daily tracking)
-                    dailyRevenue: 0,
-                    dailyCosts: 0,
-                    history: [], // For chart
+                    // Queues
+                    orders: [], // Pending orders waiting for stock
+                    shipping: [], // Items currently being delivered
                     
-                    // Progress
-                    productionProgress: 0,
-                    satisfaction: 100
+                    // Performance Tracking (0-100)
+                    eff: { buy:0, make:0, sell:0, log:0 }
                 };
-                
-                this.ui.showView('company');
-                this.ui.updateCompanyDashboard();
-                toast("Firma gegründet!", "success");
+
+                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('dash-screen').style.display = 'block';
+                this.log(`Firma ${name} gegründet. Viel Erfolg, CEO!`);
+                this.updateUI();
+                this.initChart();
             },
 
-            companyTick: function() {
-                const c = this.state.company;
-                if(!c) return;
+            // MAIN LOOP (100ms)
+            loop: function() {
+                if(!this.company) return;
+                this.tick++;
 
-                // 1. Purchasing (Buy Materials)
-                // Logic: Buy if raw materials are low relative to production capacity
-                let desiredRaw = (c.staff.make * 10) + 10;
-                if(c.staff.buy > 0 && c.rawMaterials < desiredRaw) {
-                    // Cost depends on active product materials or default
-                    let matCost = c.product ? (c.product.baseCost * 0.5) : 10; 
-                    if(this.state.cash >= matCost) {
-                        // Buying speed depends on staff count
-                        if(Math.random() < (c.staff.buy * 0.1)) {
-                            this.state.cash -= matCost;
-                            c.rawMaterials++;
-                            c.dailyCosts += matCost;
-                        }
+                if(this.tick % 50 === 0) this.dailyUpdate(); // Day cycle
+                
+                this.processPurchasing();
+                this.processProduction();
+                this.processSales();
+                this.processLogistics();
+                this.processContracts();
+
+                if(this.tick % 5 === 0) this.updateUI(); // UI Refresh rate slightly lower to save perfs
+                if(this.tick % 10 === 0) this.updateChart();
+            },
+
+            // 1. Purchasing Logic
+            processPurchasing: function() {
+                const c = this.company;
+                const capacity = c.staff.buy * 50; // Max Raw storage per buyer
+                
+                // Buying speed
+                if(c.staff.buy > 0 && c.raw < capacity) {
+                    c.eff.buy = 100; // Working full cap
+                    if(this.cash >= c.product.cost && Math.random() < (c.staff.buy * 0.05)) {
+                        this.cash -= c.product.cost;
+                        c.raw++;
                     }
+                } else {
+                    c.eff.buy = c.staff.buy > 0 ? 0 : 0; // Idle
                 }
+            },
 
-                // 2. Production (Raw -> Stock)
-                if(c.staff.make > 0 && c.rawMaterials > 0 && c.product) {
-                    c.productionProgress += (c.staff.make * 2); // Speed
-                    if(c.productionProgress >= 100) {
-                        c.productionProgress = 0;
-                        c.rawMaterials--;
+            // 2. Production Logic
+            processProduction: function() {
+                const c = this.company;
+                if(c.staff.make > 0 && c.raw > 0) {
+                    c.eff.make = 100;
+                    // Production Rate
+                    let rate = c.staff.make * 0.02;
+                    if(Math.random() < rate) {
+                        c.raw--;
                         c.stock++;
                     }
+                } else {
+                    c.eff.make = 0;
                 }
+            },
 
-                // 3. Sales (Stock -> Cash)
-                if(c.staff.sell > 0 && c.stock > 0 && c.product) {
-                    // Sales Probability Formula:
-                    // Base Chance * Staff Count * Satisfaction Factor
-                    let sentimentFactor = c.satisfaction / 100;
-                    let chance = 0.05 * c.staff.sell * sentimentFactor;
+            // 3. Sales Logic (Finding Customers)
+            processSales: function() {
+                const c = this.company;
+                if(c.staff.sell > 0) {
+                    // Verkäufer finden Kunden -> Erstellen "Orders"
+                    // Chance depends on Price/Quality ratio + Reputation
+                    let ratio = c.product.price / (c.product.cost * (1 + c.product.quality * 0.2));
+                    let chance = (c.staff.sell * 0.03) / ratio; 
                     
                     if(Math.random() < chance) {
+                        // Neuer Auftrag (Automatisch)
+                        c.orders.push({ 
+                            qty: 1, 
+                            val: c.product.price, 
+                            tick: 0 
+                        });
+                        c.eff.sell = 100;
+                    } else {
+                        c.eff.sell = Math.max(0, c.eff.sell - 1); // Decay
+                    }
+                }
+            },
+
+            // 4. Logistics Logic (Shipping)
+            processLogistics: function() {
+                const c = this.company;
+                
+                // Phase A: Move from Stock to Shipping (Verpacken)
+                // Prüfe offene Orders
+                if(c.orders.length > 0 && c.stock > 0 && c.staff.log > 0) {
+                    // Logistiker verarbeitet Order
+                    if(Math.random() < c.staff.log * 0.1) {
+                        let order = c.orders.shift(); // Nimm älteste Order
                         c.stock--;
-                        this.state.cash += c.product.price;
-                        c.dailyRevenue += c.product.price;
-                        // Small rep boost for good sales
-                        if(c.satisfaction > 80 && Math.random() < 0.1) this.state.reputation++;
+                        
+                        // Add to shipping queue with delivery time
+                        c.shipping.push({
+                            val: order.val,
+                            progress: 0,
+                            distance: 20 + Math.random() * 30 // Ticks to deliver
+                        });
+                        c.eff.log = 100;
                     }
-                }
-
-                // Update UI elements strictly related to fast ticks
-                this.ui.updateFastCompanyStats();
-            },
-
-            companyDailyUpdate: function() {
-                const c = this.state.company;
-                if(!c) return;
-
-                // 1. Wages
-                let totalStaff = c.staff.buy + c.staff.make + c.staff.sell;
-                let wages = totalStaff * 100; // 100 per day per person
-                
-                if(this.state.cash >= wages) {
-                    this.state.cash -= wages;
-                    c.dailyCosts += wages;
                 } else {
-                    toast("STREIK! Löhne nicht gezahlt.", "error");
-                    // Penalty: Staff leaves
-                    if(totalStaff > 0) {
-                        c.staff.buy = Math.max(0, c.staff.buy - 1);
-                        c.staff.make = Math.max(0, c.staff.make - 1);
-                        c.staff.sell = Math.max(0, c.staff.sell - 1);
+                    c.eff.log = Math.max(0, c.eff.log - 1);
+                }
+
+                // Phase B: Driving (Ausliefern)
+                for(let i = c.shipping.length - 1; i >= 0; i--) {
+                    let shipment = c.shipping[i];
+                    shipment.progress += (1 + (c.staff.log * 0.1)); // Mehr Mitarbeiter = Schneller
+                    
+                    if(shipment.progress >= shipment.distance) {
+                        // Delivered!
+                        this.cash += shipment.val;
+                        this.reputation += 0.1;
+                        this.log(`Lieferung erfolgreich: +${shipment.val}€`);
+                        c.shipping.splice(i, 1);
                     }
                 }
-
-                // 2. Chart Update
-                let profit = c.dailyRevenue - c.dailyCosts;
-                c.history.push(profit);
-                if(c.history.length > 20) c.history.shift();
-                this.ui.updateCompanyChart();
-
-                // 3. Report Logic (Every 7 days)
-                if(this.day % 7 === 0) {
-                    this.ui.showReport(c.dailyRevenue, wages, c.dailyCosts - wages); // Approx
-                }
-
-                // Reset Daily counters
-                c.dailyRevenue = 0; 
-                c.dailyCosts = 0;
             },
 
-            createProduct: function(name, materialIds, price) {
-                let cost = 0;
-                let qualityScore = 0;
+            // 5. Contracts (Special Orders)
+            processContracts: function() {
+                // Generiere selten Großaufträge
+                if(this.tick % 200 === 0 && this.company.staff.sell > 0) {
+                    let qty = Math.floor(Math.random() * 50) + 10;
+                    let price = qty * this.company.product.price * 1.2; // 20% Bonus
+                    this.addContract(qty, price);
+                }
+            },
+
+            addContract: function(qty, val) {
+                const id = Date.now();
+                const div = document.createElement('div');
+                div.className = 'contract-item';
+                div.id = 'contract-'+id;
+                div.innerHTML = `
+                    <div>
+                        <strong>Großauftrag</strong><br>
+                        ${qty}x ${this.company.product.name}
+                    </div>
+                    <div style="text-align:right">
+                        <div style="color:var(--green)">+${val.toFixed(0)} €</div>
+                        <button class="btn btn-primary" style="padding:5px 10px; margin-top:5px;" onclick="Game.acceptContract(${id}, ${qty}, ${val})">Annehmen</button>
+                    </div>
+                `;
+                document.getElementById('contracts-list').prepend(div);
+            },
+
+            acceptContract: function(id, qty, val) {
+                // Add to special internal queue handled by logistics
+                // For simplicity here: Directly insert into orders queue
+                for(let i=0; i<qty; i++) {
+                    this.company.orders.push({ qty: 1, val: val/qty, tick:0 });
+                }
+                document.getElementById('contract-'+id).remove();
+                this.log(`Großauftrag angenommen: ${qty} Einheiten in Warteschlange.`);
+            },
+
+            dailyUpdate: function() {
+                this.day++;
+                document.getElementById('ui-day').innerText = this.day;
                 
-                materialIds.forEach(id => {
-                    let m = this.materials.find(x => x.id === id);
-                    cost += m.cost;
-                    qualityScore += m.quality;
-                });
-
-                // Satisfaction Calculation
-                // Ideal Price is roughly Cost * 2. If Price is higher, satisfaction drops.
-                // Quality mitigates price sensitivity.
-                let fairPrice = cost * (1.5 + (qualityScore * 0.1));
-                let ratio = price / fairPrice; 
+                // Pay wages
+                const wagePerEmp = 50;
+                const totalStaff = this.company.staff.buy + this.company.staff.make + this.company.staff.sell + this.company.staff.log;
+                const totalWage = totalStaff * wagePerEmp;
                 
-                let sat = 100;
-                if(ratio > 1) {
-                    // Overpriced
-                    sat = Math.max(10, 100 - ((ratio - 1) * 100)); 
-                } else {
-                    // Good deal
-                    sat = Math.min(150, 100 + ((1 - ratio) * 50));
-                }
-
-                this.state.company.product = {
-                    name: name,
-                    baseCost: cost,
-                    price: parseInt(price),
-                    quality: qualityScore,
-                };
-                this.state.company.satisfaction = Math.floor(sat);
-                this.ui.updateCompanyDashboard();
-            },
-
-            /* --- STOCK MARKET --- */
-            initStocks: function() {
-                const names = ["TechNova", "BioLife", "AutoMotor", "GreenEnergy", "SpaceX-2"];
-                names.forEach((n, i) => {
-                    this.state.stocks.push({
-                        id: i, name: n,
-                        price: Math.random() * 100 + 50,
-                        history: Array(50).fill(100),
-                        owned: 0
-                    });
-                });
-            },
-
-            stockMarketTick: function() {
-                this.state.stocks.forEach(s => {
-                    let move = (Math.random() - 0.5) * 5;
-                    s.price = Math.max(1, s.price + move);
-                    s.history.push(s.price);
-                    if(s.history.length > 50) s.history.shift();
-                });
-                if(document.getElementById('view-stocks').style.display === 'block') {
-                    this.ui.renderStocks();
+                if(totalStaff > 0) {
+                    if(this.cash >= totalWage) {
+                        this.cash -= totalWage;
+                        this.log(`Löhne gezahlt: -${totalWage}€`);
+                    } else {
+                        this.log("STREIK! Kein Geld für Löhne!", "error");
+                        // 50% staff quits
+                        this.company.staff.buy = Math.floor(this.company.staff.buy/2);
+                        this.company.staff.make = Math.floor(this.company.staff.make/2);
+                        this.company.staff.sell = Math.floor(this.company.staff.sell/2);
+                        this.company.staff.log = Math.floor(this.company.staff.log/2);
+                    }
                 }
             },
 
-            /* --- REAL ESTATE & OTHER --- */
-            initEstate: function() {
-                this.state.properties = [
-                    {id: 1, name: "Apartment", cost: 5000, income: 100},
-                    {id: 2, name: "Penthouse", cost: 50000, income: 1200},
-                    {id: 3, name: "Mall", cost: 200000, income: 5000}
-                ];
+            log: function(msg, type="info") {
+                const el = document.getElementById('console-log');
+                const line = document.createElement('div');
+                line.className = 'log-item';
+                line.innerText = `[Tag ${this.day}] ${msg}`;
+                if(type === 'error') line.style.color = 'var(--red)';
+                el.prepend(line);
+                if(el.children.length > 20) el.lastChild.remove();
             },
 
-            /* --- UI HANDLERS --- */
-            ui: {
-                chartInstance: null,
-                stockChartInstance: null,
+            updateUI: function() {
+                document.getElementById('ui-cash').innerText = this.cash.toLocaleString() + " €";
+                document.getElementById('ui-rep').innerText = Math.floor(this.reputation);
+                
+                const c = this.company;
+                
+                // Bars
+                document.getElementById('bar-raw').style.width = Math.min(100, (c.raw / (c.staff.buy*50 || 1))*100) + "%";
+                document.getElementById('d-raw').innerText = c.raw;
+                document.getElementById('bar-eff-buy').style.width = c.eff.buy + "%";
 
-                updateGlobal: function() {
-                    document.getElementById('global-cash').innerText = Game.state.cash.toLocaleString() + " €";
-                    document.getElementById('global-rep').innerText = Game.state.reputation;
-                },
+                document.getElementById('bar-stock').style.width = Math.min(100, (c.stock / 100)*100) + "%"; // Visual scale
+                document.getElementById('d-stock').innerText = c.stock;
+                document.getElementById('bar-eff-make').style.width = c.eff.make + "%";
 
-                showView: function(id) {
-                    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-                    document.getElementById('view-' + id).classList.add('active');
-                    
-                    // Setup specific views
-                    if(id === 'company') {
-                        if(Game.state.company) {
-                            document.getElementById('company-setup').style.display = 'none';
-                            document.getElementById('company-dash').style.display = 'block';
-                            this.updateCompanyDashboard();
-                        } else {
-                            document.getElementById('company-setup').style.display = 'block';
-                            document.getElementById('company-dash').style.display = 'none';
-                        }
-                    }
-                    if(id === 'stocks') this.renderStocks();
-                    if(id === 'estate') this.renderEstate();
-                },
+                document.getElementById('d-sales').innerText = c.eff.sell > 0 ? "Aktiv" : "Warten";
+                document.getElementById('bar-eff-sell').style.width = c.eff.sell + "%";
 
-                updateCompanyDashboard: function() {
-                    const c = Game.state.company;
-                    if(!c) return;
-                    
-                    document.getElementById('comp-title').innerText = c.name;
-                    document.getElementById('comp-satisfaction').innerText = c.satisfaction + "%";
-                    document.getElementById('comp-satisfaction').style.color = c.satisfaction > 80 ? 'var(--success)' : 'var(--danger)';
-                    
-                    // Product Info
-                    if(c.product) {
-                        document.getElementById('curr-prod-name').innerText = c.product.name;
-                        document.getElementById('curr-prod-cost').innerText = c.product.baseCost;
-                        document.getElementById('curr-prod-price').innerText = c.product.price;
-                        let margin = Math.floor(((c.product.price - c.product.baseCost) / c.product.price) * 100);
-                        document.getElementById('curr-prod-margin').innerText = margin;
-                    }
+                document.getElementById('d-ship').innerText = c.shipping.length + " Pakete";
+                document.getElementById('bar-eff-log').style.width = c.eff.log + "%";
 
-                    // Staff Counts
-                    document.getElementById('staff-buy').innerText = c.staff.buy;
-                    document.getElementById('staff-make').innerText = c.staff.make;
-                    document.getElementById('staff-sell').innerText = c.staff.sell;
-                },
+                // Staff Counts UI
+                ['buy','make','sell','log'].forEach(role => {
+                    let el = document.getElementById('count-'+role);
+                    if(el) el.innerText = c.staff[role];
+                });
+            },
 
-                updateFastCompanyStats: function() {
-                    // Called every tick
-                    const c = Game.state.company;
-                    document.getElementById('val-raw').innerText = c.rawMaterials;
-                    document.getElementById('val-stock').innerText = c.stock;
-                    this.updateGlobal();
-                },
-
-                initCharts: function() {
-                    // Company Chart
-                    const ctx = document.getElementById('companyChart').getContext('2d');
-                    this.chartInstance = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: Array(20).fill(''),
-                            datasets: [{
-                                label: 'Gewinn/Verlust',
-                                data: [],
-                                borderColor: '#38bdf8',
-                                backgroundColor: 'rgba(56, 189, 248, 0.1)',
-                                fill: true,
-                                tension: 0.3
-                            }]
+            initChart: function() {
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                this.chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array(20).fill(''),
+                        datasets: [{
+                            label: 'Kapital',
+                            data: Array(20).fill(this.cash),
+                            borderColor: '#0ea5e9',
+                            tension: 0.4,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            x: { display: false }, 
+                            y: { grid: { color: '#334155' } } 
                         },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { x: {display: false}, y: {grid: {color:'#334155'}} } }
-                    });
-
-                    // Stock Chart (Dummy setup, updated on selection)
-                    const ctxS = document.getElementById('stockChart').getContext('2d');
-                    this.stockChartInstance = new Chart(ctxS, {
-                        type: 'line',
-                        data: { labels: Array(50).fill(''), datasets: [{ data: [], borderColor: '#22c55e', tension: 0.1 }] },
-                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} }, scales: { x: {display: false}, y: {grid: {color:'#334155'}} } }
-                    });
-                },
-
-                updateCompanyChart: function() {
-                    const c = Game.state.company;
-                    this.chartInstance.data.datasets[0].data = c.history;
-                    this.chartInstance.update();
-                },
-
-                renderStocks: function() {
-                    let tbody = document.getElementById('stock-list-body');
-                    tbody.innerHTML = "";
-                    Game.state.stocks.forEach(s => {
-                        let row = document.createElement('tr');
-                        row.onclick = () => this.selectStock(s.id);
-                        row.innerHTML = `<td>${s.name}</td><td>${s.price.toFixed(2)}</td><td>${s.owned}</td>`;
-                        tbody.appendChild(row);
-                    });
-                },
-
-                selectStock: function(id) {
-                    let s = Game.state.stocks.find(x => x.id === id);
-                    document.getElementById('stock-name-disp').innerText = s.name;
-                    document.getElementById('stock-owned').innerText = s.owned;
-                    this.stockChartInstance.data.datasets[0].data = s.history;
-                    this.stockChartInstance.update();
-                    // Store ID in DOM for trade function
-                    document.getElementById('stock-qty').dataset.sid = id;
-                },
-
-                renderEstate: function() {
-                    let grid = document.getElementById('estate-grid');
-                    grid.innerHTML = "";
-                    Game.state.properties.forEach(p => {
-                        grid.innerHTML += `
-                        <div class="menu-card" onclick="Game.buyProperty(${p.id})">
-                            <i class="fas fa-building"></i>
-                            <h3>${p.name}</h3>
-                            <p>Kosten: ${p.cost} €</p>
-                            <p style="color:var(--success)">Einkommen: ${p.income} €/Tag</p>
-                        </div>`;
-                    });
-                },
-
-                showReport: function(inc, exp, net) {
-                    document.getElementById('report-inc').innerText = "+" + inc;
-                    document.getElementById('report-wages').innerText = "-" + exp;
-                    let el = document.getElementById('report-profit');
-                    el.innerText = net + " €";
-                    el.style.color = net >= 0 ? "var(--success)" : "var(--danger)";
-                    document.getElementById('modal-report').style.display = 'flex';
-                }
+                        animation: false
+                    }
+                });
             },
 
-            /* --- ACTIONS --- */
+            updateChart: function() {
+                if(!this.chart) return;
+                this.chart.data.datasets[0].data.shift();
+                this.chart.data.datasets[0].data.push(this.cash);
+                this.chart.update();
+            }
+        };
+
+        /* --- STAFF MANAGER --- */
+        const Staff = {
             hire: function(role) {
-                if(this.state.cash >= 500) {
-                    this.state.cash -= 500;
-                    this.state.company.staff[role]++;
-                    this.ui.updateCompanyDashboard();
-                    this.ui.updateGlobal();
+                if(Game.cash >= 500) {
+                    Game.cash -= 500;
+                    Game.company.staff[role]++;
+                    Game.log(`Mitarbeiter eingestellt (${role}).`);
+                    Game.updateUI();
                 } else {
-                    toast("Zu wenig Geld (500€)", "error");
+                    alert("Zu wenig Geld!");
                 }
             },
             fire: function(role) {
-                if(this.state.company.staff[role] > 0) {
-                    this.state.company.staff[role]--;
-                    this.ui.updateCompanyDashboard();
-                }
-            },
-            
-            // Generate dynamic contracts
-            generateContract: function() {
-                if(!this.state.company) return;
-                let list = document.getElementById('contracts-list');
-                let div = document.createElement('div');
-                div.className = 'contract-card';
-                let amount = Math.floor(Math.random() * 50) + 10;
-                let pay = amount * (this.state.company.product ? this.state.company.product.price * 1.2 : 100); // 20% Markup for bulk
-                
-                div.innerHTML = `
-                    <h3>Großauftrag</h3>
-                    <p>Gesucht: ${amount} Einheiten</p>
-                    <p style="color:var(--warning)">Zahlung: ${Math.floor(pay)} €</p>
-                    <button class="btn-action" style="margin-top:5px; background:var(--bg-lighter)">Liefern</button>
-                `;
-                
-                div.querySelector('button').onclick = () => {
-                    if(this.state.company.stock >= amount) {
-                        this.state.company.stock -= amount;
-                        this.state.cash += pay;
-                        this.state.reputation += 2;
-                        div.remove();
-                        toast("Auftrag erfüllt!", "success");
-                        this.ui.updateGlobal();
-                    } else {
-                        toast("Nicht genug Ware auf Lager!", "error");
-                    }
-                };
-                
-                list.appendChild(div);
-                // Remove after 30 seconds
-                setTimeout(() => div.remove(), 30000);
-            },
-
-            buyProperty: function(id) {
-                let p = this.state.properties.find(x=>x.id===id);
-                if(this.state.cash >= p.cost) {
-                    this.state.cash -= p.cost;
-                    // Simply add income to a passive income ticker (simplified here)
-                    setInterval(() => {
-                        this.state.cash += p.income;
-                        toast(`Miete (${p.name}): +${p.income}€`, "success");
-                        this.ui.updateGlobal();
-                    }, 10000); // Every 10s
-                    toast(p.name + " gekauft!", "success");
-                    this.ui.updateGlobal();
+                if(Game.company.staff[role] > 0) {
+                    Game.company.staff[role]--;
+                    Game.log(`Mitarbeiter entlassen.`);
+                    Game.updateUI();
                 }
             }
         };
 
-        /* --- GLOBAL FUNCTIONS FOR HTML HANDLERS --- */
-        function goHome() { Game.ui.showView('home'); }
-        function openView(id) { Game.ui.showView(id); }
-        function createCompany() {
-            let name = document.getElementById('setup-name').value;
-            let type = document.getElementById('setup-type').value;
-            if(name) Game.createCompany(name, type);
-        }
-        function hire(r) { Game.hire(r); }
-        function fire(r) { Game.fire(r); }
-        
-        function openProductDesigner() {
-            let grid = document.getElementById('mat-grid');
-            grid.innerHTML = "";
-            document.querySelectorAll('.mat-option').forEach(e => e.classList.remove('selected'));
-            
-            Game.materials.forEach(m => {
-                let el = document.createElement('div');
-                el.className = 'mat-option';
-                el.innerHTML = `<div>${m.name}</div><small>${m.cost}€</small>`;
-                el.dataset.id = m.id;
-                el.dataset.cost = m.cost;
-                el.dataset.qual = m.quality;
-                el.onclick = function() { this.classList.toggle('selected'); updateDesignPreview(); };
-                grid.appendChild(el);
-            });
-            
-            document.getElementById('modal-product').style.display = 'flex';
-            updateDesignPreview();
-        }
-
-        function updateDesignPreview() {
-            let cost = 0;
-            let quality = 0;
-            document.querySelectorAll('.mat-option.selected').forEach(el => {
-                cost += parseInt(el.dataset.cost);
-                quality += parseInt(el.dataset.qual);
-            });
-            
-            let price = document.getElementById('price-slider').value;
-            document.getElementById('preview-cost').innerText = cost + " €";
-            document.getElementById('preview-price').innerText = price + " €";
-            
-            // Calc sentiment
-            let fairPrice = cost * (1.5 + (quality * 0.1));
-            let ratio = price / (fairPrice || 1);
-            let sent = "Neutral";
-            if(ratio < 0.8) sent = "Begeistert! (Sehr Hoch)";
-            else if(ratio < 1.1) sent = "Zufrieden (Hoch)";
-            else if(ratio < 1.5) sent = "Skeptisch (Mittel)";
-            else sent = "Wütend (Niedrig)";
-            
-            document.getElementById('preview-sentiment').innerText = sent;
-        }
-
-        function launchProduct() {
-            let name = document.getElementById('design-name').value;
-            if(!name) return toast("Name fehlt!", "error");
-            
-            let matIds = [];
-            document.querySelectorAll('.mat-option.selected').forEach(el => matIds.push(el.dataset.id));
-            if(matIds.length === 0) return toast("Keine Materialien gewählt!", "error");
-            
-            let price = document.getElementById('price-slider').value;
-            
-            Game.createProduct(name, matIds, price);
-            closeModal();
-            toast("Produkt gestartet!", "success");
-        }
-
-        function closeModal() { document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none'); }
-        
-        function toast(msg, type) {
-            let t = document.createElement('div');
-            t.className = `toast ${type}`;
-            t.innerHTML = type === 'success' ? `<i class="fas fa-check-circle"></i> ${msg}` : `<i class="fas fa-exclamation-circle"></i> ${msg}`;
-            document.getElementById('toast-container').appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
-
-        function tradeStock(type) {
-            let id = parseInt(document.getElementById('stock-qty').dataset.sid);
-            let qty = parseInt(document.getElementById('stock-qty').value);
-            if(isNaN(id)) return;
-            
-            let s = Game.state.stocks.find(x => x.id === id);
-            let cost = s.price * qty;
-            
-            if(type === 'buy') {
-                if(Game.state.cash >= cost) {
-                    Game.state.cash -= cost;
-                    s.owned += qty;
-                    toast("Aktien gekauft", "success");
-                } else toast("Zu wenig Geld", "error");
-            } else {
-                if(s.owned >= qty) {
-                    Game.state.cash += cost;
-                    s.owned -= qty;
-                    toast("Aktien verkauft", "success");
-                }
-            }
-            Game.ui.updateGlobal();
-            Game.ui.selectStock(id); // Refresh view
-        }
-
-        function spinCasino() {
-            let bet = parseInt(document.getElementById('casino-bet').value);
-            if(!bet || bet > Game.state.cash) return toast("Ungültiger Einsatz", "error");
-            Game.state.cash -= bet;
-            // Fake delay
-            setTimeout(() => {
-                let win = Math.random() > 0.5;
-                if(win) {
-                    Game.state.cash += bet * 2;
-                    toast("Gewonnen! +" + (bet*2), "success");
+        /* --- PRODUCT DESIGNER --- */
+        const Product = {
+            mats: [],
+            toggleMat: function(id, cost) {
+                const btn = document.getElementById('mat-'+id);
+                if(this.mats.includes(id)) {
+                    this.mats = this.mats.filter(m => m !== id);
+                    btn.style.border = "none";
                 } else {
-                    toast("Verloren...", "error");
+                    this.mats.push(id);
+                    btn.style.border = "2px solid var(--accent)";
                 }
-                Game.ui.updateGlobal();
-            }, 500);
-            Game.ui.updateGlobal();
+                this.updatePreview();
+            },
+            updatePreview: function() {
+                let cost = 0;
+                // Calculate cost based on mats (simplified for demo)
+                this.mats.forEach(m => cost += 10); // Placeholder logic
+                if(cost === 0) cost = 10; // Base
+
+                let price = document.getElementById('price-slider').value;
+                document.getElementById('calc-cost').innerText = cost + " €";
+                document.getElementById('calc-price').innerText = price + " €";
+                
+                let ratio = price / (cost * 1.5);
+                let sent = "Neutral";
+                if(ratio < 0.8) sent = "Begeistert!";
+                else if(ratio > 2) sent = "Wütend (Zu teuer)";
+                document.getElementById('calc-sentiment').innerText = sent;
+            },
+            save: function() {
+                const name = document.getElementById('prod-name').value;
+                const price = parseInt(document.getElementById('price-slider').value);
+                const cost = parseInt(document.getElementById('calc-cost').innerText);
+                
+                Game.company.product.name = name || "Produkt X";
+                Game.company.product.price = price;
+                Game.company.product.cost = cost;
+                
+                Game.log(`Neues Produkt entwickelt: ${name}`);
+                setView('dash');
+            }
+        };
+
+        /* --- NAVIGATION --- */
+        function setView(id) {
+            document.querySelectorAll('.content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.btn-nav').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById('view-' + id).style.display = 'block';
+            // Find button roughly
+            const btns = document.querySelectorAll('.btn-nav');
+            if(id === 'dash') btns[0].classList.add('active');
+            if(id === 'production') btns[1].classList.add('active');
+            if(id === 'sales') btns[2].classList.add('active');
+            if(id === 'product') btns[3].classList.add('active');
         }
 
-        // START GAME
-        window.onload = () => Game.init();
+        // START
+        setInterval(() => Game.loop(), 100);
 
     </script>
 </body>
