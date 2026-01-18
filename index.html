@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Imperium: Ultimate</title>
+    <title>Business Imperium: Ultimate Collection</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-dark: #121212;
             --bg-panel: #1e1e1e;
-            --accent: #FFD700; /* Gold */
+            --accent: #FFD700;
             --green: #00e676;
             --red: #ff5252;
             --blue: #2979ff;
+            --purple: #d500f9;
         }
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -21,382 +22,406 @@
             margin: 0;
             padding: 0;
             text-align: center;
+            user-select: none;
         }
 
         /* --- HAUPTMENÜ --- */
         #mainMenu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: radial-gradient(circle, #2c2c2c 0%, #000000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: start;
+            min-height: 100vh; padding: 40px 20px;
+            background: radial-gradient(circle at top, #2c2c2c 0%, #000000 100%);
         }
-        .menu-title { font-size: 4em; margin-bottom: 20px; color: var(--accent); text-transform: uppercase; letter-spacing: 5px; }
-        .menu-cash { font-size: 2em; margin-bottom: 50px; color: var(--green); }
+        .menu-title { font-size: 3em; margin-bottom: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 3px; }
+        .menu-cash { font-size: 2.5em; margin-bottom: 40px; color: var(--green); font-weight: bold; text-shadow: 0 0 10px rgba(0,230,118,0.3); }
         
         .menu-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
-            padding: 20px;
         }
         .menu-card {
-            background: var(--bg-panel);
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #333;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            background: var(--bg-panel); padding: 30px; border-radius: 15px; border: 2px solid #333;
+            cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center;
         }
-        .menu-card:hover { transform: translateY(-10px); border-color: var(--accent); }
-        .card-icon { font-size: 4em; display: block; margin-bottom: 20px; }
-        .card-title { font-size: 1.5em; font-weight: bold; }
-        .card-desc { color: #888; margin-top: 10px; }
+        .menu-card:hover { transform: translateY(-5px); border-color: var(--accent); background: #252525; }
+        .card-icon { font-size: 3.5em; margin-bottom: 15px; }
+        .card-title { font-size: 1.4em; font-weight: bold; margin-bottom: 5px; }
+        .card-desc { color: #888; font-size: 0.9em; }
 
-        /* --- GAME VIEWS ALLGEMEIN --- */
-        .game-view { display: none; height: 100vh; box-sizing: border-box; padding: 20px; }
+        /* --- GAME VIEWS --- */
+        .game-view { display: none; height: 100vh; box-sizing: border-box; padding: 20px; max-width: 1000px; margin: 0 auto; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; background: #333; padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; }
-        .back-btn { background: #555; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .back-btn { background: #555; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .back-btn:hover { background: #777; }
+        
+        button { cursor: pointer; border: none; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
 
-        /* --- STYLES FÜR AKTIEN (Aus v5) --- */
-        .stock-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 85vh; }
+        /* --- STYLES: FREELANCER --- */
+        .project-card { background: var(--bg-panel); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; }
+        .progress-container { width: 100%; background: #333; height: 30px; border-radius: 15px; margin: 15px 0; overflow: hidden; position: relative;}
+        .progress-bar { height: 100%; background: var(--blue); width: 0%; transition: width 0.1s linear; }
+        .code-btn { width: 100%; padding: 20px; font-size: 1.5em; background: var(--blue); color: white; border-radius: 10px; font-family: monospace; }
+
+        /* --- STYLES: SAFE --- */
+        .safe-box { background: #222; padding: 40px; border-radius: 20px; border: 5px solid #444; position: relative; max-width: 500px; margin: 0 auto; }
+        .safe-display { background: black; color: red; font-family: monospace; font-size: 3em; padding: 10px; border-radius: 5px; margin-bottom: 20px; }
+        .slider-container { width: 100%; height: 40px; background: #333; position: relative; border-radius: 20px; overflow: hidden; margin-bottom: 20px; }
+        .target-zone { position: absolute; height: 100%; background: rgba(0, 230, 118, 0.4); border-left: 2px solid var(--green); border-right: 2px solid var(--green); }
+        .moving-cursor { position: absolute; height: 100%; width: 5px; background: white; left: 0; box-shadow: 0 0 10px white; }
+        .crack-btn { width: 100%; padding: 20px; background: var(--red); color: white; font-size: 1.5em; border-radius: 10px; font-weight: bold; }
+
+        /* --- STYLES: SCHATZSUCHE --- */
+        .chest-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .chest-card { background: var(--bg-panel); padding: 20px; border-radius: 10px; border: 2px solid #555; cursor: pointer; transition: 0.2s; }
+        .chest-card:hover { border-color: var(--purple); background: #2a2a2a; }
+        .chest-icon { font-size: 5em; display: block; margin-bottom: 10px; }
+
+        /* --- STYLES VOM VORGÄNGER (Aktien, Tycoon, Casino) --- */
+        .stock-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: 80vh; }
         .stock-list { overflow-y: auto; background: var(--bg-panel); padding: 10px; border-radius: 10px; }
-        .stock-chart { background: var(--bg-panel); padding: 20px; border-radius: 10px; display: flex; flex-direction: column; }
+        .tycoon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .building-card { background: var(--bg-panel); padding: 15px; border-radius: 10px; border: 1px solid #444; position: relative; }
+        .buy-btn { width: 100%; padding: 8px; margin-top: 10px; background: var(--green); color: black; border-radius: 5px; font-weight: bold; }
+        .buy-btn:disabled { background: #444; color: #888; cursor: not-allowed; }
+
+        /* Helper Klassen */
         table { width: 100%; border-collapse: collapse; }
-        td, th { padding: 10px; text-align: left; border-bottom: 1px solid #333; }
-        tr:hover { background: #333; cursor: pointer; }
-        .up { color: var(--green); } .down { color: var(--red); } .boost { color: var(--accent); }
-
-        /* --- STYLES FÜR CASINO --- */
-        .casino-center { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; }
-        .roulette-wheel { 
-            width: 200px; height: 200px; border-radius: 50%; border: 10px solid #fff; 
-            margin: 30px; display: flex; align-items: center; justify-content: center; font-size: 3em; font-weight: bold;
-            background: #333; transition: transform 0.5s;
-        }
-        .bet-btn { padding: 15px 30px; margin: 10px; font-size: 1.2em; border: none; border-radius: 5px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-red { background: var(--red); }
-        .btn-black { background: #333; border: 1px solid white; }
-        .btn-green { background: var(--green); }
-
-        /* --- STYLES FÜR TYCOON (IMMOBILIEN) --- */
-        .tycoon-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .building-card { background: var(--bg-panel); padding: 20px; border-radius: 10px; text-align: left; border: 1px solid #444; position: relative; overflow: hidden; }
-        .building-img { font-size: 3em; float: right; opacity: 0.3; }
-        .income-tag { color: var(--green); font-weight: bold; }
-        .buy-btn { width: 100%; padding: 10px; margin-top: 10px; background: var(--blue); color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .buy-btn:disabled { background: #444; cursor: not-allowed; }
-
+        td, th { padding: 8px; text-align: left; border-bottom: 1px solid #333; }
+        .up { color: var(--green); } .down { color: var(--red); }
     </style>
 </head>
 <body>
 
     <div id="mainMenu">
         <div class="menu-title">Business Imperium</div>
-        <div class="menu-cash">Kontostand: <span id="menuCashDisplay">10.000 €</span></div>
+        <div class="menu-cash" id="menuCashDisplay">10.000 €</div>
         
         <div class="menu-grid">
             <div class="menu-card" onclick="openGame('stocks')">
                 <span class="card-icon">📈</span>
-                <div class="card-title">Wall Street</div>
-                <div class="card-desc">Handel mit volatilen Aktien. Hohes Risiko, Charts und Marktmanipulation.</div>
+                <div class="card-title">Aktienmarkt</div>
+                <div class="card-desc">Handel & Manipulation</div>
             </div>
-
             <div class="menu-card" onclick="openGame('casino')">
                 <span class="card-icon">🎰</span>
-                <div class="card-title">High Roller Casino</div>
-                <div class="card-desc">Roulette & Glücksspiel. Verdopple dein Geld oder verliere alles in Sekunden.</div>
+                <div class="card-title">Casino</div>
+                <div class="card-desc">Roulette (Rot/Schwarz)</div>
             </div>
-
             <div class="menu-card" onclick="openGame('tycoon')">
                 <span class="card-icon">🏨</span>
-                <div class="card-title">Immobilien Mogul</div>
-                <div class="card-desc">Kaufe Gebäude und kassiere Miete. Baue ein Imperium auf, das dir gehört.</div>
+                <div class="card-title">Immobilien</div>
+                <div class="card-desc">Passives Einkommen</div>
+            </div>
+
+            <div class="menu-card" onclick="openGame('freelancer')">
+                <span class="card-icon">👨‍💻</span>
+                <div class="card-title">Software Studio</div>
+                <div class="card-desc">Klicke & Code für Geld</div>
+            </div>
+            <div class="menu-card" onclick="openGame('heist')">
+                <span class="card-icon">🕵️</span>
+                <div class="card-title">Tresor Knacker</div>
+                <div class="card-desc">Geschicklichkeit & Timing</div>
+            </div>
+            <div class="menu-card" onclick="openGame('loot')">
+                <span class="card-icon">🏴‍☠️</span>
+                <div class="card-title">Schatzsuche</div>
+                <div class="card-desc">Container Auktionen</div>
             </div>
         </div>
     </div>
 
     <div id="view-stocks" class="game-view">
-        <div class="top-bar">
-            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
-            <div>Börsen-Wallet: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span></div>
-        </div>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Wallet: <b class="cash-global"></b></span></div>
         <div class="stock-layout">
             <div class="stock-list">
-                <table>
-                    <thead><tr><th>Aktie</th><th>Preis</th><th>Besitz</th></tr></thead>
-                    <tbody id="stockTableBody"></tbody>
-                </table>
+                <table><tbody id="stockTableBody"></tbody></table>
             </div>
-            <div class="stock-chart">
-                <h2 id="stockNameDisplay">Wähle eine Aktie</h2>
+            <div style="background: var(--bg-panel); padding: 20px; border-radius: 10px; display: flex; flex-direction: column;">
+                <h2 id="stockNameDisplay">Aktie wählen</h2>
                 <div style="flex-grow:1; position:relative;"><canvas id="stockChartCanvas"></canvas></div>
                 <div style="margin-top:20px; display:flex; gap:10px;">
                     <button class="buy-btn" onclick="tradeStock('buy')" style="background:var(--green)">Kaufen</button>
-                    <button class="buy-btn" onclick="tradeStock('sell')" style="background:var(--red)">Verkaufen</button>
-                    <button class="buy-btn" id="boostBtn" onclick="boostStock()" style="background:var(--accent); color:black;">🚀 BOOST (10x)</button>
+                    <button class="buy-btn" onclick="tradeStock('sell')" style="background:var(--red); color:white;">Verkaufen</button>
+                    <button class="buy-btn" onclick="boostStock()" style="background:var(--accent);">🚀 BOOST</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="view-casino" class="game-view">
-        <div class="top-bar">
-            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
-            <div>Casino Chips: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span></div>
-        </div>
-        <div class="casino-center">
-            <h1>Roulette: Rot oder Schwarz?</h1>
-            <div id="rouletteWheel" class="roulette-wheel">?</div>
-            <input type="number" id="betAmount" placeholder="Einsatz" style="padding:10px; font-size:1.2em; text-align:center; width:200px; margin-bottom:20px;">
-            <div>
-                <button class="bet-btn btn-red" onclick="spinRoulette('red')">🔴 ROT (x2)</button>
-                <button class="bet-btn btn-black" onclick="spinRoulette('black')">⚫ SCHWARZ (x2)</button>
-                <button class="bet-btn btn-green" onclick="spinRoulette('green')">🟢 GRÜN (x14)</button>
-            </div>
-            <p id="casinoResult" style="margin-top:20px; font-size:1.5em;"></p>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Chips: <b class="cash-global"></b></span></div>
+        <div style="text-align: center; margin-top: 50px;">
+            <div id="rouletteWheel" style="font-size: 5em; margin: 30px;">🎲</div>
+            <input type="number" id="betAmount" placeholder="Einsatz" style="padding:15px; font-size:1.2em; text-align:center; margin-bottom:20px;">
+            <br>
+            <button class="buy-btn" onclick="spinRoulette('red')" style="width:150px; background:var(--red); color:white;">🔴 ROT (x2)</button>
+            <button class="buy-btn" onclick="spinRoulette('black')" style="width:150px; background:#333; color:white; border:1px solid white;">⚫ SCHWARZ (x2)</button>
+            <p id="casinoResult" style="font-size:1.5em; margin-top:20px;"></p>
         </div>
     </div>
 
     <div id="view-tycoon" class="game-view">
-        <div class="top-bar">
-            <button class="back-btn" onclick="goHome()">🏠 Zurück zum Menü</button>
-            <div>Immobilien-Konto: <span class="cash-global" style="color:var(--green); font-weight:bold;"></span> | Einkommen: <span id="passiveIncomeDisplay">0 €</span>/sek</div>
-        </div>
-        <div class="tycoon-grid" id="buildingList">
-            </div>
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Konto: <b class="cash-global"></b></span></div>
+        <div class="tycoon-grid" id="buildingList"></div>
     </div>
 
-    <script>
-        // --- GLOBALE VARIABLEN ---
-        let cash = 10000;
+    <div id="view-freelancer" class="game-view">
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Honorarkonto: <b class="cash-global"></b></span></div>
         
-        // Update alle Geldanzeigen auf der Seite
-        function updateCashDisplay() {
-            document.getElementById('menuCashDisplay').innerText = formatMoney(cash);
-            let displays = document.getElementsByClassName('cash-global');
-            for(let d of displays) d.innerText = formatMoney(cash);
+        <div class="project-card">
+            <h2>Aktuelles Projekt: <span style="color:var(--blue)">Webseite entwickeln</span></h2>
+            <p>Schreibe Code, um den Balken zu füllen und bezahlt zu werden.</p>
+            <div class="progress-container">
+                <div class="progress-bar" id="codeProgress"></div>
+            </div>
+            <button class="code-btn" onmousedown="workCode()">⌨️ Code tippen!</button>
+        </div>
+        <p style="text-align:center; color:#888;">Profi-Tipp: Klicke schnell hintereinander!</p>
+    </div>
+
+    <div id="view-heist" class="game-view">
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Beute: <b class="cash-global"></b></span></div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <h1>Der Millionärs-Safe</h1>
+            <p>Stoppe den Cursor genau im grünen Bereich. <br>Kosten pro Versuch: 500 €</p>
             
-            // Tycoon Buttons checken
-            renderTycoon(); 
+            <div class="safe-box">
+                <div class="safe-display" id="heistStatus">LOCKED</div>
+                <div class="slider-container">
+                    <div id="heistTarget" class="target-zone" style="left: 40%; width: 20%;"></div>
+                    <div id="heistCursor" class="moving-cursor"></div>
+                </div>
+                <button class="crack-btn" id="heistBtn" onclick="attemptHeist()">🔓 JETZT KNACKEN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-loot" class="game-view">
+        <div class="top-bar"><button class="back-btn" onclick="goHome()">🏠 Zurück</button><span>Kasse: <b class="cash-global"></b></span></div>
+        
+        <h1 style="text-align:center; color:var(--purple);">Lagerraum Auktionen</h1>
+        <p style="text-align:center;">Kaufe einen ungesehenen Container. Ist Gold drin oder alter Müll?</p>
+        <br>
+        
+        <div class="chest-grid">
+            <div class="chest-card" onclick="openLoot(100)">
+                <span class="chest-icon">📦</span>
+                <h3>Kleiner Karton</h3>
+                <p>Preis: 100 €</p>
+                <p style="font-size:0.8em; color:#888;">Mögliche Werte: 0 € - 500 €</p>
+            </div>
+            <div class="chest-card" onclick="openLoot(1000)">
+                <span class="chest-icon">🚚</span>
+                <h3>Transporter</h3>
+                <p>Preis: 1.000 €</p>
+                <p style="font-size:0.8em; color:#888;">Mögliche Werte: 100 € - 5.000 €</p>
+            </div>
+            <div class="chest-card" onclick="openLoot(5000)">
+                <span class="chest-icon">🚢</span>
+                <h3>Schiffs-Container</h3>
+                <p>Preis: 5.000 €</p>
+                <p style="font-size:0.8em; color:#888;">Mögliche Werte: 0 € - 50.000 €</p>
+            </div>
+        </div>
+        <div id="lootResult" style="text-align:center; font-size:2em; font-weight:bold; margin-top:30px; height: 50px;"></div>
+    </div>
+
+
+    <script>
+        // --- GLOBALS ---
+        let cash = 10000;
+
+        // --- CORE SYSTEM ---
+        function formatMoney(n) { return n.toLocaleString('de-DE', {style:'currency', currency:'EUR'}); }
+        
+        function updateAllUI() {
+            document.getElementById('menuCashDisplay').innerText = formatMoney(cash);
+            document.querySelectorAll('.cash-global').forEach(el => el.innerText = formatMoney(cash));
+            renderTycoon(); // Buttons aktualisieren
         }
 
-        function formatMoney(num) {
-            return num.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
-        }
-
-        // --- NAVIGATION ---
-        function openGame(gameId) {
+        function openGame(id) {
             document.getElementById('mainMenu').style.display = 'none';
-            document.getElementById('view-' + gameId).style.display = 'block';
-            updateCashDisplay();
+            document.getElementById('view-'+id).style.display = 'block';
+            
+            // Spezielle Init Logik für Heist
+            if(id === 'heist') startHeistAnim();
+            
+            updateAllUI();
         }
 
         function goHome() {
             document.querySelectorAll('.game-view').forEach(el => el.style.display = 'none');
             document.getElementById('mainMenu').style.display = 'flex';
-            updateCashDisplay();
+            stopHeistAnim(); // Heist anhalten um CPU zu sparen
+            updateAllUI();
         }
 
-        // ==========================================
-        // SPIEL 1 LOGIK: AKTIEN (Vereinfacht für Übersicht)
-        // ==========================================
-        let stocks = [];
-        let selectedStockId = null;
-        let chartInstance = null;
-
-        // Init Stocks
-        for(let i=0; i<20; i++) {
-            stocks.push({ 
-                id: i, 
-                name: "Firma " + String.fromCharCode(65+i), 
-                price: Math.random()*100+10, 
-                owned: 0, 
-                history: Array(50).fill(0),
-                boost: 0 
-            });
-        }
-
-        function initChart() {
-            const ctx = document.getElementById('stockChartCanvas').getContext('2d');
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: { labels: Array(50).fill(''), datasets: [{ label: 'Kurs', data: [], borderColor: '#00e676', tension: 0.1 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: {legend: {display:false}}, scales: {x:{display:false}} }
-            });
-        }
-        initChart();
-
-        // Markt Simulation Loop
-        setInterval(() => {
-            stocks.forEach(s => {
-                if(s.boost > 0) {
-                    s.price *= 1.1; // 10% pro Tick hoch bei Boost
-                    s.boost--;
-                } else {
-                    let change = (Math.random() - 0.5) * 4; 
-                    s.price += change;
-                    if(s.price < 1) s.price = 1;
-                }
-                s.history.shift();
-                s.history.push(s.price);
-            });
-            renderStocks();
-            if(selectedStockId !== null) updateChart();
-        }, 1000);
-
-        function renderStocks() {
-            let html = '';
-            stocks.forEach(s => {
-                let style = (selectedStockId === s.id) ? 'background:#333' : '';
-                html += `<tr onclick="selectStock(${s.id})" style="${style}"><td>${s.name}</td><td>${formatMoney(s.price)}</td><td>${s.owned}</td></tr>`;
-            });
-            document.getElementById('stockTableBody').innerHTML = html;
-        }
-
-        function selectStock(id) {
-            selectedStockId = id;
-            document.getElementById('stockNameDisplay').innerText = stocks[id].name;
-            updateChart();
-            renderStocks();
-        }
-
-        function updateChart() {
-            let s = stocks[selectedStockId];
-            chartInstance.data.datasets[0].data = s.history;
-            chartInstance.data.datasets[0].borderColor = s.boost > 0 ? '#FFD700' : '#00e676';
-            chartInstance.update();
-        }
-
-        function tradeStock(type) {
-            if(selectedStockId === null) return;
-            let s = stocks[selectedStockId];
-            if(type === 'buy') {
-                if(cash >= s.price) { cash -= s.price; s.owned++; }
-            } else {
-                if(s.owned > 0) { cash += s.price; s.owned--; }
+        // --- 1. FREELANCER LOGIK ---
+        let projectProgress = 0;
+        function workCode() {
+            projectProgress += 5; // 5% pro Klick
+            if(projectProgress >= 100) {
+                projectProgress = 0;
+                let pay = 300 + Math.floor(Math.random() * 200); // 300-500€
+                cash += pay;
+                updateAllUI();
+                // Kleiner Effekt
+                let btn = document.querySelector('.code-btn');
+                btn.innerText = `+ ${pay} € VERDIENT!`;
+                setTimeout(() => btn.innerText = "⌨️ Code tippen!", 1000);
             }
-            updateCashDisplay();
-            renderStocks();
+            document.getElementById('codeProgress').style.width = projectProgress + "%";
         }
 
-        function boostStock() {
-            if(selectedStockId !== null) stocks[selectedStockId].boost = 15; // 15 Ticks Boost
+        // --- 2. HEIST LOGIK ---
+        let heistInterval = null;
+        let cursorPos = 0;
+        let direction = 1;
+        let targetStart = 40;
+        let targetWidth = 20;
+
+        function startHeistAnim() {
+            if(heistInterval) clearInterval(heistInterval);
+            // Neues Ziel setzen
+            targetWidth = 10 + Math.random() * 20; // Breite zwischen 10% und 30%
+            targetStart = Math.random() * (100 - targetWidth);
+            document.getElementById('heistTarget').style.left = targetStart + "%";
+            document.getElementById('heistTarget').style.width = targetWidth + "%";
+            document.getElementById('heistStatus').innerText = "LOCKED";
+            document.getElementById('heistStatus').style.color = "red";
+
+            // Animation Loop
+            heistInterval = setInterval(() => {
+                cursorPos += 1.5 * direction; // Geschwindigkeit
+                if(cursorPos >= 100 || cursorPos <= 0) direction *= -1;
+                document.getElementById('heistCursor').style.left = cursorPos + "%";
+            }, 10); // 100fps
         }
 
+        function stopHeistAnim() { clearInterval(heistInterval); }
 
-        // ==========================================
-        // SPIEL 2 LOGIK: CASINO (Roulette)
-        // ==========================================
-        function spinRoulette(choice) {
-            let input = document.getElementById('betAmount');
-            let bet = parseInt(input.value);
-            if(!bet || bet <= 0 || bet > cash) { alert("Ungültiger Einsatz!"); return; }
+        function attemptHeist() {
+            if(cash < 500) { alert("Du brauchst 500 € für das Werkzeug!"); return; }
+            cash -= 500;
+            
+            // Prüfen ob getroffen
+            if(cursorPos >= targetStart && cursorPos <= (targetStart + targetWidth)) {
+                let loot = 2000 + Math.floor(Math.random() * 5000);
+                cash += loot;
+                document.getElementById('heistStatus').innerText = "OPEN: +" + loot + "€";
+                document.getElementById('heistStatus').style.color = "lime";
+            } else {
+                document.getElementById('heistStatus').innerText = "ALARM! (-500€)";
+            }
+            updateAllUI();
+        }
 
-            cash -= bet;
-            updateCashDisplay();
-
-            let wheel = document.getElementById('rouletteWheel');
-            wheel.style.transform = "rotate(1080deg)"; // Animation Fake
-            wheel.innerText = "🎲";
+        // --- 3. LOOTBOX LOGIK ---
+        function openLoot(cost) {
+            if(cash < cost) { alert("Zu wenig Geld!"); return; }
+            cash -= cost;
+            
+            let resultEl = document.getElementById('lootResult');
+            resultEl.innerText = "Öffne...";
+            resultEl.style.color = "white";
 
             setTimeout(() => {
-                wheel.style.transform = "rotate(0deg)";
-                let rand = Math.random();
-                let resultColor = 'black';
-                if(rand < 0.05) resultColor = 'green'; // 5% Chance auf Grün
-                else if(rand < 0.525) resultColor = 'red'; // ca 47.5% Rot
+                // Multiplikator zwischen 0x und 5x (Gewichtet nach unten)
+                let luck = Math.random();
+                let multi = 0;
+                
+                if(luck > 0.9) multi = 5;       // Jackpot (10% Chance)
+                else if(luck > 0.6) multi = 1.5; // Kleiner Gewinn
+                else if(luck > 0.3) multi = 0.5; // Verlust
+                else multi = 0;                  // Niete (Müll)
 
-                wheel.style.background = resultColor === 'red' ? 'var(--red)' : (resultColor === 'green' ? 'var(--green)' : '#333');
-                wheel.innerText = resultColor === 'red' ? '🔴' : (resultColor === 'green' ? '🟢' : '⚫');
-
-                let win = 0;
-                if(choice === resultColor) {
-                    if(choice === 'green') win = bet * 14;
-                    else win = bet * 2;
-                }
-
-                if(win > 0) {
-                    cash += win;
-                    document.getElementById('casinoResult').innerText = "GEWONNEN: " + formatMoney(win);
-                    document.getElementById('casinoResult').style.color = "var(--green)";
+                let win = Math.floor(cost * multi);
+                cash += win;
+                
+                if(win > cost) {
+                    resultEl.innerText = "JACKPOT! " + formatMoney(win);
+                    resultEl.style.color = "var(--accent)";
+                } else if(win === 0) {
+                    resultEl.innerText = "Nur Müll drin... (0 €)";
+                    resultEl.style.color = "var(--red)";
                 } else {
-                    document.getElementById('casinoResult').innerText = "VERLOREN";
-                    document.getElementById('casinoResult').style.color = "var(--red)";
+                    resultEl.innerText = "Wert: " + formatMoney(win);
+                    resultEl.style.color = "white";
                 }
-                updateCashDisplay();
-            }, 1000);
+                updateAllUI();
+            }, 800);
         }
 
+        // --- ALT: AKTIEN (Mini Version) ---
+        let stocks = [{id:0, name:"TechCorp", price:100, owned:0, hist:[100]}, {id:1, name:"BananaInc", price:50, owned:0, hist:[50]}];
+        let stockChart; 
+        
+        function initStocks() {
+             const ctx = document.getElementById('stockChartCanvas').getContext('2d');
+             stockChart = new Chart(ctx, { type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#00e676', tension:0.1}]}, options:{responsive:true, maintainAspectRatio:false, plugins:{legend:false}, scales:{x:{display:false}}} });
+             setInterval(() => {
+                 stocks.forEach(s => { 
+                     s.price = Math.max(1, s.price + (Math.random()-0.5)*5); 
+                     if(s.hist.length > 20) s.hist.shift();
+                     s.hist.push(s.price);
+                 });
+                 renderStocks();
+             }, 1000);
+        }
+        function renderStocks() {
+            let html = "";
+            stocks.forEach(s => html += `<tr><td>${s.name}</td><td>${formatMoney(s.price)}</td><td>${s.owned}</td><td><button onclick="tradeS(${s.id}, 1)">K</button> <button onclick="tradeS(${s.id}, -1)">V</button></td></tr>`);
+            document.getElementById('stockTableBody').innerHTML = html;
+            if(stocks[0]) { 
+                stockChart.data.datasets[0].data = stocks[0].hist; 
+                stockChart.update(); 
+            }
+        }
+        function tradeS(id, amount) {
+            let s = stocks[id];
+            if(amount > 0 && cash >= s.price) { cash-=s.price; s.owned++; }
+            if(amount < 0 && s.owned > 0) { cash+=s.price; s.owned--; }
+            updateAllUI();
+        }
 
-        // ==========================================
-        // SPIEL 3 LOGIK: TYCOON (Immobilien)
-        // ==========================================
-        let buildings = [
-            { id: 0, name: "Kiosk", cost: 100, income: 1, count: 0, icon: "🏪" },
-            { id: 1, name: "Wohnung", cost: 1500, income: 10, count: 0, icon: "🏠" },
-            { id: 2, name: "Supermarkt", cost: 10000, income: 80, count: 0, icon: "🛒" },
-            { id: 3, name: "Fabrik", cost: 50000, income: 450, count: 0, icon: "🏭" },
-            { id: 4, name: "Wolkenkratzer", cost: 250000, income: 2500, count: 0, icon: "🌇" }
-        ];
-
+        // --- ALT: TYCOON ---
+        let builds = [{id:0, name:"Kiosk", cost:100, inc:2, count:0}, {id:1, name:"Fabrik", cost:1000, inc:25, count:0}];
         function renderTycoon() {
-            let container = document.getElementById('buildingList');
-            container.innerHTML = "";
-            let totalIncome = 0;
-
-            buildings.forEach(b => {
-                totalIncome += b.count * b.income;
-                let currentCost = Math.floor(b.cost * Math.pow(1.15, b.count)); // Preis steigt um 15% pro Kauf
-
-                let btnDisabled = cash < currentCost ? "disabled" : "";
-
-                let html = `
-                <div class="building-card">
-                    <span class="building-img">${b.icon}</span>
-                    <h3>${b.name}</h3>
-                    <div class="income-tag">+${b.income} € / sek</div>
-                    <div>Besitz: ${b.count}</div>
-                    <button class="buy-btn" onclick="buyBuilding(${b.id})" ${btnDisabled}>
-                        Kaufen (${formatMoney(currentCost)})
-                    </button>
-                </div>`;
-                container.innerHTML += html;
+            let div = document.getElementById('buildingList'); div.innerHTML="";
+            builds.forEach(b => {
+                let cost = Math.floor(b.cost * Math.pow(1.1, b.count));
+                div.innerHTML += `<div class="building-card"><h3>${b.name} (${b.count})</h3><div style="color:lime">+${b.inc}€/s</div><button class="buy-btn" onclick="buyB(${b.id})" ${cash<cost?'disabled':''}>Kaufen ${cost}€</button></div>`;
             });
-            document.getElementById('passiveIncomeDisplay').innerText = totalIncome;
         }
-
-        function buyBuilding(id) {
-            let b = buildings[id];
-            let currentCost = Math.floor(b.cost * Math.pow(1.15, b.count));
-            if(cash >= currentCost) {
-                cash -= currentCost;
-                b.count++;
-                updateCashDisplay();
-                renderTycoon();
-            }
+        function buyB(id) {
+            let b = builds[id]; let cost = Math.floor(b.cost * Math.pow(1.1, b.count));
+            if(cash>=cost) { cash-=cost; b.count++; updateAllUI(); renderTycoon(); }
         }
-
-        // Passives Einkommen Timer (Jede Sekunde)
         setInterval(() => {
-            let income = 0;
-            buildings.forEach(b => { income += b.count * b.income; });
-            if(income > 0) {
-                cash += income;
-                // Nur UI updaten wenn wir im Tycoon Menü oder Hauptmenü sind, um Performance zu sparen
-                if(document.getElementById('view-tycoon').style.display === 'block' || 
-                   document.getElementById('mainMenu').style.display === 'flex') {
-                    updateCashDisplay();
-                }
-            }
+            let sum = 0; builds.forEach(b=>sum+=b.count*b.inc);
+            if(sum>0) { cash+=sum; updateAllUI(); }
         }, 1000);
 
-        // Start
-        updateCashDisplay();
+        // --- ALT: CASINO ---
+        function spinRoulette(col) {
+            let bet = parseInt(document.getElementById('betAmount').value);
+            if(!bet || bet>cash) return alert("Ungültig");
+            cash-=bet; updateAllUI();
+            let res = Math.random()>0.5 ? 'red' : 'black';
+            if(col===res) cash += bet*2;
+            document.getElementById('casinoResult').innerText = col===res ? "GEWONNEN!" : "VERLOREN";
+            updateAllUI();
+        }
+
+        // START
+        initStocks();
+        updateAllUI();
 
     </script>
 </body>
